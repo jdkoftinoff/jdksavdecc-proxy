@@ -22,10 +22,11 @@
 
 void JDKSAvdeccProxyPDU_init( JDKSAvdeccProxyPDU *self )
 {
+    int i;
     self->m_version = 0;
     self->m_message_type = 0;
     self->m_payload_length = 0;
-    for(int i=0; i<6; ++i )
+    for(i=0; i<6; ++i )
     {
         self->m_address[i] = 0;
     }
