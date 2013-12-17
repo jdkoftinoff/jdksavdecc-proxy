@@ -21,5 +21,4 @@
 
 #include "jdksavdecc-proxy_server.h"
 
-
 #endif

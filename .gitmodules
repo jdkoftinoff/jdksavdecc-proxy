@@ -1,3 +1,6 @@
 [submodule "microsupport"]
 	path = microsupport
 	url = ../microsupport.git
+[submodule "jdksavdecc-c"]
+	path = jdksavdecc-c
+	url = ../jdksavdecc-c.git

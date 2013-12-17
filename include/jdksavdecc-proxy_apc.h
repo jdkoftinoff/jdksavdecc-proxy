@@ -22,5 +22,4 @@
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_app.h"
 
-
 #endif

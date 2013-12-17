@@ -16,7 +16,5 @@
  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_server.h"
-
