@@ -18,10 +18,18 @@ file(GLOB_RECURSE JDKSAVDECC_C_SRC "jdksavdecc-c/src/*.c" )
 
 if(APPLE)
 file(GLOB_RECURSE MICROSUPPORT_SRC "microsupport/src/*.c" "microsupport/src/win32/*.c" )
+add_definitions(-DTARGET_PLATFORM_MACOSX=1 -DUS_ENABLE_RAW_ETHERNET -US_ENABLE_PCAP)
 endif(APPLE)
+
 if(UNIX)
 file(GLOB_RECURSE MICROSUPPORT_SRC "microsupport/src/*.c" "microsupport/src/posix/*.c"  "microsupport/src/posix/*.h" )
+add_definitions(-DTARGET_PLATFORM_POSIX=1 -DUS_ENABLE_SYSLOG)
 endif(UNIX)
+
+if( (NOT APPLE) AND UNIX)
+add_definitions(-DTARGET_PLATFORM_LINUX=1 -DUS_ENABLE_RAW_ETHERNET)
+endif((NOT APPLE) AND UNIX)
+
 if(WIN32)
 file(GLOB_RECURSE MICROSUPPORT_SRC "microsupport/src/*.c" "microsupport/src/macosx/*.c" )
 endif(WIN32)
