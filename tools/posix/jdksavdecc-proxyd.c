@@ -17,20 +17,7 @@
  */
 
 #include "jdksavdecc-proxy_world.h"
-#include "us_daemon.h"
-#include "us_logger_syslog.h"
 #include "jdksavdecc-proxyd.h"
-#include "jdksavdecc_app.h"
-
-#ifndef JDKSAVDECC_PROXYD_IDENTITY
-#define JDKSAVDECC_PROXYD_IDENTITY "jdksavdecc-proxyd"
-#endif
-
-#ifndef JDKSAVDECC_PROXYD_CONFIG_FILE
-/**! The global configuration file */
-#define JDKSAVDECC_PROXYD_CONFIG_FILE "/etc/" JDKSAVDECC_PROXYD_IDENTITY ".conf"
-#endif
-
 
 /**! The printer pointing to stdout */
 us_print_file_t proxyd_stdout_printer;
@@ -99,7 +86,7 @@ const char proxyd_option_homedir_default[] = "/var/run/" JDKSAVDECC_PROXYD_IDENT
 const char *proxyd_option_homedir = 0;
 
 /**! The daemon's default pidfile */
-const char proxyd_option_pidfile_default[] = "/var/run/jdksavdecc-proxyd/" JDKSAVDECC_PROXYD_IDENTITY ".pid";
+const char proxyd_option_pidfile_default[] = "/var/run/" JDKSAVDECC_PROXYD_IDENTITY "/" JDKSAVDECC_PROXYD_IDENTITY ".pid";
 
 /**! The daemon's pidfile */
 const char *proxyd_option_pidfile = 0;

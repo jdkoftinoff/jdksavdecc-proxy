@@ -21,6 +21,20 @@
 
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_server.h"
+#include "us_daemon.h"
+#include "us_logger_syslog.h"
+#include "jdksavdecc-proxyd.h"
+#include "jdksavdecc_app.h"
+
+#ifndef JDKSAVDECC_PROXYD_IDENTITY
+#define JDKSAVDECC_PROXYD_IDENTITY "jdksavdecc-proxyd"
+#endif
+
+#ifndef JDKSAVDECC_PROXYD_CONFIG_FILE
+/**! The global configuration file */
+#define JDKSAVDECC_PROXYD_CONFIG_FILE "/etc/" JDKSAVDECC_PROXYD_IDENTITY ".conf"
+#endif
+
 
 
 

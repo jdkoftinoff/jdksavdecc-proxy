@@ -47,8 +47,27 @@ INSTALL(FILES
 
 link_directories( ${JDKSAVDECC_PROXY_BINARY_DIR} )
 
+add_definitions( -DUS_ENABLE_RAW_ETHERNET=1 )
+if(APPLE)
+  add_definitions( -DTARGET_PLATFORM_POSIX=1)
+elseif(UNIX)
+  add_definitions( -DTARGET_PLATFORM_POSIX=1)
+elseif(WIN32)
+  add_definitions( -DTARGET_PLATFORM_WIN32=1 )
+  include_directories( $ENV{WPCAP_DIR}/Include )
+  if ( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    link_directories( $ENV{WPCAP_DIR}/Lib/x64 )
+  elseif( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+    link_directories( $ENV{WPCAP_DIR}/Lib )
+  endif()
+endif()
+
+
 if(UNIX)
-add_executable(jdksavdecc-proxyd tools/posix/jdksavdecc-proxyd)
-target_link_libraries(jdksavdecc-proxyd ${LIBS})
+add_executable(jdksavdecc-proxyd tools/posix/jdksavdecc-proxyd.c tools/posix/jdksavdecc-proxyd.h )
+if(APPLE)
+  target_link_libraries( "jdksavdecc-proxyd" pcap)
+endif()
+target_link_libraries( "jdksavdecc-proxyd" ${LIBS})
 endif(UNIX)
 

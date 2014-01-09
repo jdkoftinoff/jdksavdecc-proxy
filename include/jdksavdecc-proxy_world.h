@@ -37,6 +37,7 @@
 #include "us_platform.h"
 #include "us_print.h"
 #include "us_queue.h"
+#include "us_rawnet_multi.h"
 #include "us_rawnet.h"
 #include "us_reactor.h"
 #include "us_reactor_handler_rawnet.h"
