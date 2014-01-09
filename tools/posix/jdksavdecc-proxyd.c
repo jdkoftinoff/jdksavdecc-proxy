@@ -19,6 +19,9 @@
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxyd.h"
 
+/**! The multiple rawnet management object */
+us_rawnet_multi_t proxyd_net;
+
 /**! The printer pointing to stdout */
 us_print_file_t proxyd_stdout_printer;
 
@@ -166,17 +169,17 @@ us_getopt_option_t proxyd_options[]
     {0, 0, 0, 0, 0}};
 
 /**! Destroy the logger */
-void proxyd_destroy_logger() { us_logger_finish(); }
+void proxyd_destroy_logger( void ) { us_logger_finish(); }
 
 /**! Initialize the logger */
-int proxyd_init_logger() {
+int proxyd_init_logger( void ) {
     us_logger_stdio_start(stdout, stdin);
     atexit(proxyd_destroy_logger);
     return 1;
 }
 
 /**! destroy the global static memory allocator */
-void proxyd_destroy_global_allocator() {
+void proxyd_destroy_global_allocator(void) {
     if (proxyd_global_allocator) {
         proxyd_global_allocator->destroy(proxyd_global_allocator);
     }
@@ -185,7 +188,7 @@ void proxyd_destroy_global_allocator() {
 }
 
 /**! Initialize the global memory allocator */
-int proxyd_init_global_allocator() {
+int proxyd_init_global_allocator(void) {
     int r = 0;
     proxyd_global_allocator_raw_memory = (uint8_t *)calloc(proxyd_option_memory_length, 1);
     if (proxyd_global_allocator_raw_memory) {
@@ -199,7 +202,7 @@ int proxyd_init_global_allocator() {
 }
 
 /**! Destroy the option lists */
-void proxyd_destroy_options() {
+void proxyd_destroy_options(void) {
     us_getopt_destroy(&proxyd_option_parser);
 }
 
@@ -254,6 +257,11 @@ int proxyd_init_options(const char *config_file, const char **argv) {
     return r;
 }
 
+/**! Run the proxy process */
+void proxyd_run( void ) {
+}
+
+
 int main(int argc, const char **argv) {
     (void)argc;
     int r = 255;
@@ -268,19 +276,38 @@ int main(int argc, const char **argv) {
     /* Initialize sockets, the logger, and parse the options */
     if (us_platform_init_sockets() && proxyd_init_logger()
         && proxyd_init_options(JDKSAVDECC_PROXYD_CONFIG_FILE, argv)) {
-        r = 0;
-        us_log_debug("Server Starting");
 
-        /* Daemonize if necessary */
-        us_daemon_daemonize(proxyd_option_daemon,
-                            proxyd_option_identity,
-                            proxyd_option_homedir,
-                            proxyd_option_pidfile,
-                            proxyd_option_newuid);
+        /* Open all ethernet ports for AVTP frames and join ADP/ACMP and identification multicast MAC addresses */
+        if( us_rawnet_multi_open(
+            &proxyd_net,
+            JDKSAVDECC_AVTP_ETHERTYPE,
+            jdksavdecc_multicast_adp_acmp.value,
+            jdksavdecc_multicast_identification.value) ) {
 
-        /* Todo: Start the server */
+            /* Also join the JDKS LOG multicast address */
+            us_rawnet_multi_join_multicast(
+                &proxyd_net,
+                jdksavdecc_jdks_multicast_log.value );
 
-        us_log_debug("Server Exiting");
+            r = 0;
+            us_log_debug("Server Starting");
+
+            /* Daemonize if necessary */
+            us_daemon_daemonize(proxyd_option_daemon,
+                                proxyd_option_identity,
+                                proxyd_option_homedir,
+                                proxyd_option_pidfile,
+                                proxyd_option_newuid);
+
+            /* Run the server */
+            proxyd_run();
+
+
+            us_log_debug("Server Exiting");
+
+            /* Close all the ethernet port */
+            us_rawnet_multi_close(&proxyd_net);
+        }
     }
 
     proxyd_bootstrap_allocator.m_base.destroy( &proxyd_bootstrap_allocator.m_base );
