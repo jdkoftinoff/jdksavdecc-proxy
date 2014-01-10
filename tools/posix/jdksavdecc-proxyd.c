@@ -331,7 +331,7 @@ bool avdeccproxy_http_server_handler_init(
 }
 
 /** avdeccproxy_http_server_init is called to initialize the tcp server with the appropriate parameters.
- *  It is called by the reactor once for every listening port/interface/ipv4/ipv6 file descriptor 
+ *  It is called by the reactor once for every listening port/interface/ipv4/ipv6 file descriptor
  *  that is used
  */
 bool avdeccproxy_http_server_init (
@@ -380,7 +380,7 @@ bool proxyd_run( void ) {
         if( h ) {
             rh = (us_reactor_handler_rawnet_t *)h;
             if( us_reactor_handler_rawnet_init(
-                    r,
+                    h,
                     proxyd_global_allocator,
                     0,
                     proxyd_option_avbif,
