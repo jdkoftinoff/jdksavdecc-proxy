@@ -30,11 +30,22 @@
 #define JDKSAVDECC_PROXYD_IDENTITY "jdksavdecc-proxyd"
 #endif
 
-#ifndef JDKSAVDECC_PROXYD_CONFIG_FILE
+#ifndef JDKSAVDECC_PROXYD_AVBIF_DEFAULT
+#if defined(__linux__)
+# define JDKSAVDECC_PROXYD_AVBIF_DEFAULT "eth0"
+#elif defined(__APPLE__)
+# define JDKSAVDECC_PROXYD_AVBIF_DEFAULT "en0"
+#endif
+#endif
 
+#ifndef JDKSPROXYD_AVTP_QUEUE_SIZE
+# define JDKSPROXYD_AVTP_QUEUE_SIZE (256)
+#endif
+
+
+#ifndef JDKSAVDECC_PROXYD_CONFIG_FILE
 /**! The global configuration file */
 #define JDKSAVDECC_PROXYD_CONFIG_FILE "/etc/" JDKSAVDECC_PROXYD_IDENTITY ".conf"
-
 #endif
 
 /**! Initialize the logger */
@@ -56,7 +67,7 @@ void proxyd_destroy_options(void);
 int proxyd_init_options(const char *config_file, const char **argv);
 
 /**! Run the proxy process */
-void proxyd_run( void );
+bool proxyd_run( void );
 
 /**! The multiple rawnet management object */
 extern us_rawnet_multi_t proxyd_net;
@@ -102,6 +113,12 @@ extern const char *proxyd_option_address;
 
 /**! The IP port to listen to */
 extern const char *proxyd_option_port;
+
+/**! The actual ethernet interface to use for AVDECC frames */
+const char *proxyd_option_avbif;
+
+/**! The actual maximum number of proxy clients via TCP */
+extern uint16_t proxyd_option_maxclients;
 
 /**! The actual max per session memory allocator size in K Bytes */
 extern uint32_t proxyd_option_session_memory_length;

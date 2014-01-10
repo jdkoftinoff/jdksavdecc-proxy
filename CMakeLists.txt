@@ -64,7 +64,7 @@ endif()
 
 
 if(UNIX)
-add_executable(jdksavdecc-proxyd tools/posix/jdksavdecc-proxyd.c tools/posix/jdksavdecc-proxyd.h )
+add_executable(jdksavdecc-proxyd tools/posix/jdksavdecc-proxyd.c tools/posix/jdksavdecc-proxyd.h)
 if(APPLE)
   target_link_libraries( "jdksavdecc-proxyd" pcap)
 endif()

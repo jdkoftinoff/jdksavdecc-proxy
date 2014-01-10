@@ -113,6 +113,21 @@ const char proxyd_option_port_default[] = JDKSAVDECC_APPDU_TCP_PORT_STRING;
 /**! The IP port to listen to */
 const char *proxyd_option_port = 0;
 
+/**! The default ethernet interface to use for AVDECC frames */
+const char proxyd_option_avbif_default[] = JDKSAVDECC_PROXYD_AVBIF_DEFAULT;
+
+/**! The actual ethernet interface to use for AVDECC frames */
+const char *proxyd_option_avbif = 0;
+
+/**! The default maximum number of proxy clients via TCP */
+uint16_t proxyd_option_maxclients_default = 4;
+
+/**! The actual maximum number of proxy clients via TCP */
+uint16_t proxyd_option_maxclients;
+
+/**! The actual max per session memory allocator size in K Bytes */
+uint32_t proxyd_option_session_memory_length;
+
 /**! The default max per session memory allocator size in K Bytes */
 uint32_t proxyd_option_session_memory_length_default = 32;
 
@@ -157,11 +172,17 @@ us_getopt_option_t proxyd_global_options[]
 /**! The options beggining with proxyd */
 us_getopt_option_t proxyd_options[]
 = {
-    {"address", "IP address to listen to ",
+    {"address", "IP address to listen on",
         US_GETOPT_STRING, &proxyd_option_address_default, &proxyd_option_address},
 
-    {"port", "IP port to listen to ",
+    {"port", "IP port to listen on",
         US_GETOPT_STRING, &proxyd_option_port_default, &proxyd_option_port},
+
+    {"avbport", "The AVB ethernet interface to use for AVDECC messages",
+        US_GETOPT_STRING, &proxyd_option_avbif_default, &proxyd_option_avbif},
+
+    {"maxclients", "Maximum number of simultaneous proxy clients",
+        US_GETOPT_UINT16, &proxyd_option_maxclients_default, &proxyd_option_maxclients},
 
     {"session", "Maximum session memory usage in KBytes",
         US_GETOPT_UINT32, &proxyd_option_session_memory_length_default, &proxyd_option_session_memory_length},
@@ -225,7 +246,7 @@ int proxyd_init_options(const char *config_file, const char **argv) {
     us_getopt_parse_file(&proxyd_option_parser, config_file);
 
     /* Parse the command line arguments */
-    us_getopt_parse_args(&proxyd_option_parser, argv);
+    us_getopt_parse_args(&proxyd_option_parser, argv+1);
 
     /* Remember to destroy the option list at exit */
     atexit(proxyd_destroy_options);
@@ -257,8 +278,146 @@ int proxyd_init_options(const char *config_file, const char **argv) {
     return r;
 }
 
+
+/** Each avdeccproxy_http_server_handler_t is used to keep track of the
+ *  conversations with one avdecc proxy client
+ */
+typedef struct avdeccproxy_http_server_handler_s {
+    us_http_server_handler_t m_base;
+    us_reactor_handler_rawnet_t *m_rawnet;
+} avdeccproxy_http_server_handler_t;
+
+
+typedef struct avdeccproxy_http_server_handler_params_s {
+    us_webapp_director_t *web_director;
+    us_reactor_handler_rawnet_t *rawnet;
+    void *extra;
+} avdeccproxy_http_server_handler_params_t;
+
+
+/** avdeccproxy_http_server_handler_create is called to allocate the storage for
+ *  an avdecc_http_server_handler.
+ */
+us_reactor_handler_t *avdeccproxy_http_server_handler_create(us_allocator_t *allocator) {
+    return (us_reactor_handler_t *)us_new(allocator, avdeccproxy_http_server_handler_t);
+}
+
+
+/** avdeccproxy_http_server_handler_init is called whenever an accepted incoming TCP connection
+ *  occurs. TODO: use session allocator.
+ */
+bool avdeccproxy_http_server_handler_init(
+                                 us_reactor_handler_t *self_,
+                                 us_allocator_t *allocator,
+                                 int fd,
+                                 void *extra
+                                 ) {
+    bool r=false;
+    avdeccproxy_http_server_handler_t *self = (avdeccproxy_http_server_handler_t *)self_;
+    avdeccproxy_http_server_handler_params_t *params = (avdeccproxy_http_server_handler_params_t *)extra;
+
+    if( us_http_server_handler_init(
+        &self->m_base.m_base.m_base,
+        allocator,
+        fd,
+        0,
+        8192,
+        params->web_director ) ) {
+            self->m_rawnet = params->rawnet;
+            // TODO: add hook to support CONNECT method, and state for handling avdecc proxy protocol state machine, and tick.
+            r=true;
+    }
+    return r;
+}
+
+/** avdeccproxy_http_server_init is called to initialize the tcp server with the appropriate parameters.
+ *  It is called by the reactor once for every listening port/interface/ipv4/ipv6 file descriptor 
+ *  that is used
+ */
+bool avdeccproxy_http_server_init (
+    us_reactor_handler_t *self,
+    us_allocator_t *allocator,
+    int fd,
+    void *extra) {
+    return us_reactor_handler_tcp_server_init (
+               self,
+               allocator,
+               fd,
+               extra,
+               avdeccproxy_http_server_handler_create,  /* The function to call to create the client handler object     */
+               avdeccproxy_http_server_handler_init     /* The function to call to initialize the client handler object */
+           );
+}
+
+
+/** Receive a frame from the ethernet port */
+bool proxyd_avtp_packet_received(
+    us_reactor_handler_rawnet_t *self,
+    const us_packet_t *packet,
+    us_packet_queue_t *outgoing_queue) {
+    us_log_debug( "Received AVTP Frame size %d",packet->m_length);
+    // TODO: pass packet to all active avdecc_http server client handlers
+    return true;
+}
+
+
 /**! Run the proxy process */
-void proxyd_run( void ) {
+bool proxyd_run( void ) {
+    bool r = false;
+    avdeccproxy_http_server_handler_params_t params;
+    us_reactor_handler_rawnet_t *rh;
+    us_webapp_director_t director;
+    us_webapp_director_init( &director, proxyd_global_allocator );
+    us_reactor_t reactor;
+    r = us_reactor_init (
+            &reactor,
+            proxyd_global_allocator,
+            proxyd_option_maxclients
+        );
+    if ( r ) {
+        us_reactor_handler_t *h=us_reactor_handler_rawnet_create(proxyd_global_allocator);
+        r=false;
+        if( h ) {
+            rh = (us_reactor_handler_rawnet_t *)h;
+            if( us_reactor_handler_rawnet_init(
+                    r,
+                    proxyd_global_allocator,
+                    0,
+                    proxyd_option_avbif,
+                    JDKSAVDECC_AVTP_ETHERTYPE,
+                    jdksavdecc_multicast_adp_acmp.value,
+                    JDKSPROXYD_AVTP_QUEUE_SIZE,
+                    JDKSPROXYD_AVTP_QUEUE_SIZE ) ) {
+                rh->packet_received = proxyd_avtp_packet_received;
+                us_reactor_add_item(&reactor, h);
+            }
+        }
+    }
+    if ( r ) {
+        params.extra = 0;
+        params.rawnet = rh;
+        params.web_director = &director;
+        r = us_reactor_create_server (
+                &reactor,
+                proxyd_global_allocator,
+                0, JDKSAVDECC_APPDU_TCP_PORT_STRING,
+                SOCK_STREAM,
+                &params,
+                us_reactor_handler_tcp_server_create,
+                avdeccproxy_http_server_handler_init
+            );
+    }
+    if ( r ) {
+        while ( !us_platform_sigterm_seen
+            && reactor.poll ( &reactor, 2000 ) ) {
+            fprintf ( stdout, "tick\n" );
+        }
+        reactor.destroy ( &reactor );
+        r = true;
+    }
+    director.destroy( &director );
+    return r;
+
 }
 
 
@@ -300,7 +459,9 @@ int main(int argc, const char **argv) {
                                 proxyd_option_newuid);
 
             /* Run the server */
-            proxyd_run();
+            if( !proxyd_run() ) {
+                us_log_error("Unable to start server");
+            }
 
 
             us_log_debug("Server Exiting");
