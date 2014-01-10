@@ -83,13 +83,13 @@ const char proxyd_option_identity_default[] = JDKSAVDECC_PROXYD_IDENTITY;
 const char *proxyd_option_identity = 0;
 
 /**! The daemon's default home dir */
-const char proxyd_option_homedir_default[] = "/var/run/" JDKSAVDECC_PROXYD_IDENTITY;
+const char proxyd_option_homedir_default[] = JDKSAVDECC_PROXYD_PID_PATH_PREFIX "/";
 
 /**! The daemon's home dir */
 const char *proxyd_option_homedir = 0;
 
 /**! The daemon's default pidfile */
-const char proxyd_option_pidfile_default[] = "/var/run/" JDKSAVDECC_PROXYD_IDENTITY "/" JDKSAVDECC_PROXYD_IDENTITY ".pid";
+const char proxyd_option_pidfile_default[] = JDKSAVDECC_PROXYD_PID_PATH_PREFIX "/" JDKSAVDECC_PROXYD_IDENTITY ".pid";
 
 /**! The daemon's pidfile */
 const char *proxyd_option_pidfile = 0;

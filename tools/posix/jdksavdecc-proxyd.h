@@ -48,6 +48,15 @@
 #define JDKSAVDECC_PROXYD_CONFIG_FILE "/etc/" JDKSAVDECC_PROXYD_IDENTITY ".conf"
 #endif
 
+#ifndef JDKSAVDECC_PROXYD_PID_PATH_PREFIX
+#if !defined(NDEBUG)
+#define JDKSAVDECC_PROXYD_PID_PATH_PREFIX "."
+#else
+#define JDKSAVDECC_PROXYD_PID_PATH_PREFIX "/var/run/jdksavdecc-proxyd"
+#endif
+#endif
+
+
 /**! Initialize the logger */
 int proxyd_init_logger( void );
 
