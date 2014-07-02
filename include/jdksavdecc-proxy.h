@@ -23,4 +23,3 @@
 #include "jdksavdecc-proxy_aps.h"
 #include "jdksavdecc-proxy_apc.h"
 #include "jdksavdecc-proxy_server.h"
-

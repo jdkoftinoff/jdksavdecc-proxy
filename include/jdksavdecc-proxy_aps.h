@@ -21,6 +21,10 @@
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_app.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct JDKSAvdeccProxy_APS_StateMachine_s
 {
 };
@@ -30,3 +34,6 @@ typedef struct JDKSAvdeccProxy_APS_StateMachine_s JDKSAvdeccProxy_APS_StateMachi
 void JDKSAvdeccProxy_APS_StateMachine_init( JDKSAvdeccProxy_APS_StateMachine *self );
 void JDKSAvdeccProxy_APS_StateMachine_destroy( JDKSAvdeccProxy_APS_StateMachine *self );
 
+#ifdef __cplusplus
+}
+#endif
