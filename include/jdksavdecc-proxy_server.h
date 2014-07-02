@@ -18,11 +18,20 @@
  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "jdksavdecc-proxy_server.h"
+#include "jdksavdecc-proxy_world.h"
+#include "jdksavdecc-proxy_app.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+struct JDKSAvdeccProxy_Server
+{
+};
+
+void JDKSAvdeccProxy_Server_init( struct JDKSAvdeccProxy_Server *self );
+void JDKSAvdeccProxy_Server_terminate( struct JDKSAvdeccProxy_Server *self );
 
 #ifdef __cplusplus
 }

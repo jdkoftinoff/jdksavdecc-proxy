@@ -25,6 +25,14 @@
 extern "C" {
 #endif
 
+struct JDKSAvdeccProxy_APC_StateMachine
+{
+};
+
+void JDKSAvdeccProxy_APC_StateMachine_init( struct JDKSAvdeccProxy_APC_StateMachine *self );
+void JDKSAvdeccProxy_APC_StateMachine_terminate( struct JDKSAvdeccProxy_APC_StateMachine *self );
+
+
 #ifdef __cplusplus
 }
 #endif

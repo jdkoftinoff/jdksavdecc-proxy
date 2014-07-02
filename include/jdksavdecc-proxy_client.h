@@ -19,18 +19,20 @@
  */
 
 #include "jdksavdecc-proxy_world.h"
-#include "jdksavdecc-proxy_app.h"
+#include "jdksavdecc-proxy_apc.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct JDKSAvdeccProxy_APS_StateMachine
+
+struct JDKSAvdeccProxy_Client
 {
 };
 
-void JDKSAvdeccProxy_APS_StateMachine_init( struct JDKSAvdeccProxy_APS_StateMachine *self );
-void JDKSAvdeccProxy_APS_StateMachine_terminate( struct JDKSAvdeccProxy_APS_StateMachine *self );
+void JDKSAvdeccProxy_Client_init( struct JDKSAvdeccProxy_Client *self );
+void JDKSAvdeccProxy_Client_terminate( struct JDKSAvdeccProxy_Client *self );
 
 #ifdef __cplusplus
 }

@@ -22,10 +22,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "jdksavdecc_world.h"
 #include "jdksavdecc_app.h"
+#include "jdksavdecc-proxy_apc.h"
+#include "jdksavdecc-proxy_aps.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 #ifdef __cplusplus
 }
