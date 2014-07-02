@@ -1,8 +1,7 @@
-#ifndef JDKSAVDECC_PROXY_APS_H
-#define JDKSAVDECC_PROXY_APS_H
+#pragma once
 
 /*
- Copyright (c) 2013, J.D. Koftinoff Software, Ltd. <jeffk@jdkoftinoff.com>
+ Copyright (c) 2014, J.D. Koftinoff Software, Ltd. <jeffk@jdkoftinoff.com>
  http://www.jdkoftinoff.com/
  All rights reserved.
 
@@ -22,11 +21,12 @@
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_app.h"
 
-struct JDKSAvdeccProxy_APS_StateMachine_s {};
+struct JDKSAvdeccProxy_APS_StateMachine_s
+{
+};
 
 typedef struct JDKSAvdeccProxy_APS_StateMachine_s JDKSAvdeccProxy_APS_StateMachine;
 
-void JDKSAvdeccProxy_APS_StateMachine_init(JDKSAvdeccProxy_APS_StateMachine *self);
-void JDKSAvdeccProxy_APS_StateMachine_destroy(JDKSAvdeccProxy_APS_StateMachine *self);
+void JDKSAvdeccProxy_APS_StateMachine_init( JDKSAvdeccProxy_APS_StateMachine *self );
+void JDKSAvdeccProxy_APS_StateMachine_destroy( JDKSAvdeccProxy_APS_StateMachine *self );
 
-#endif

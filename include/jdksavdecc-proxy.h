@@ -1,8 +1,7 @@
-#ifndef JDKSAVDECC_PROXY_H
-#define JDKSAVDECC_PROXY_H
+#pragma once
 
 /*
- Copyright (c) 2013, J.D. Koftinoff Software, Ltd. <jeffk@jdkoftinoff.com>
+ Copyright (c) 2014, J.D. Koftinoff Software, Ltd. <jeffk@jdkoftinoff.com>
  http://www.jdkoftinoff.com/
  All rights reserved.
 
@@ -25,4 +24,3 @@
 #include "jdksavdecc-proxy_apc.h"
 #include "jdksavdecc-proxy_server.h"
 
-#endif
