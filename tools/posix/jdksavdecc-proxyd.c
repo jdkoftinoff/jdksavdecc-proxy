@@ -163,21 +163,21 @@ us_getopt_option_t proxyd_options[]
        {0, 0, 0, 0, 0}};
 
 /**! Destroy the logger */
-void proxyd_destroy_logger( void )
+void proxyd_logger_terminate( void )
 {
     us_logger_finish();
 }
 
 /**! Initialize the logger */
-int proxyd_init_logger( void )
+int proxyd_logger_init( void )
 {
     us_logger_stdio_start( stdout, stdin );
-    atexit( proxyd_destroy_logger );
+    atexit( proxyd_logger_terminate );
     return 1;
 }
 
 /**! destroy the global static memory allocator */
-void proxyd_destroy_global_allocator( void )
+void proxyd_global_allocator_terminate( void )
 {
     if ( proxyd_global_allocator )
     {
@@ -188,7 +188,7 @@ void proxyd_destroy_global_allocator( void )
 }
 
 /**! Initialize the global memory allocator */
-int proxyd_init_global_allocator( void )
+int proxyd_global_allocator_init( void )
 {
     int r = 0;
     proxyd_global_allocator_raw_memory = (uint8_t *)calloc( proxyd_option_memory_length, 1 );
@@ -197,20 +197,20 @@ int proxyd_init_global_allocator( void )
         us_simple_allocator_init(
             &proxyd_simple_allocator, proxyd_global_allocator_raw_memory, proxyd_option_memory_length * 1024 );
         proxyd_global_allocator = &proxyd_simple_allocator.m_base;
-        atexit( proxyd_destroy_global_allocator );
+        atexit( proxyd_global_allocator_terminate );
         r = 1;
     }
     return r;
 }
 
 /**! Destroy the option lists */
-void proxyd_destroy_options( void )
+void proxyd_options_terminate( void )
 {
     us_getopt_destroy( &proxyd_option_parser );
 }
 
 /**! Initialize the option lists, read a config file, and parse the command line */
-int proxyd_init_options( const char *config_file, const char **argv )
+int proxyd_options_init( const char *config_file, const char **argv )
 {
     int r = 1;
     /* Initialize the options manager */
@@ -232,7 +232,7 @@ int proxyd_init_options( const char *config_file, const char **argv )
     us_getopt_parse_args( &proxyd_option_parser, argv + 1 );
 
     /* Remember to destroy the option list at exit */
-    atexit( proxyd_destroy_options );
+    atexit( proxyd_options_terminate );
 
     us_log_debug( "Parsed options" );
 
@@ -260,7 +260,7 @@ int proxyd_init_options( const char *config_file, const char **argv )
     }
 
     /* Initialize the global allocator now that we know how much storage to give it */
-    proxyd_init_global_allocator();
+    proxyd_global_allocator_init();
     return r;
 }
 
@@ -403,7 +403,7 @@ int main( int argc, const char **argv )
     proxyd_printer = &proxyd_stdout_printer.m_base;
 
     /* Initialize sockets, the logger, and parse the options */
-    if ( us_platform_init_sockets() && proxyd_init_logger() && proxyd_init_options( JDKSAVDECC_PROXYD_CONFIG_FILE, argv ) )
+    if ( us_platform_init_sockets() && proxyd_logger_init() && proxyd_options_init( JDKSAVDECC_PROXYD_CONFIG_FILE, argv ) )
     {
 
         /* Open all ethernet ports for AVTP frames and join ADP/ACMP and identification multicast MAC addresses */

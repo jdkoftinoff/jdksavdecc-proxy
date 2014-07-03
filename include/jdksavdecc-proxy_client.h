@@ -21,11 +21,9 @@
 #include "jdksavdecc-proxy_world.h"
 #include "jdksavdecc-proxy_apc.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 struct JDKSAvdeccProxy_Client
 {

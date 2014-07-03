@@ -58,22 +58,22 @@
 
 
 /**! Initialize the logger */
-int proxyd_init_logger( void );
+int proxyd_logger_init( void );
 
-/**! Destroy the logger */
-void proxyd_destroy_logger( void );
+/**! Terminate the logger */
+void proxyd_logger_terminate( void );
 
-/**! destroy the global static memory allocator */
-void proxyd_destroy_global_allocator(void);
+/**! Terminate the global static memory allocator */
+void proxyd_global_allocator_terminate(void);
 
 /**! Initialize the global memory allocator */
-int proxyd_init_global_allocator(void);
+int proxyd_global_allocator_init(void);
 
-/**! Destroy the option lists */
-void proxyd_destroy_options(void);
+/**! Terminate the option lists */
+void proxyd_options_terminate(void);
 
 /**! Initialize the option lists, read a config file, and parse the command line */
-int proxyd_init_options(const char *config_file, const char **argv);
+int proxyd_options_init(const char *config_file, const char **argv);
 
 /**! Run the proxy process */
 bool proxyd_run( void );

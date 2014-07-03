@@ -25,7 +25,6 @@
 extern "C" {
 #endif
 
-
 struct JDKSAvdeccProxy_Server
 {
 };
