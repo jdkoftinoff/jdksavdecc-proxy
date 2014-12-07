@@ -1,16 +1,22 @@
 cmake_minimum_required (VERSION 2.8)
-
-add_subdirectory(libuv)
-add_subdirectory(jdksavdecc-mcu)
-
 set(PROJECT jdksavdecc-proxy)
 project(${PROJECT} C CXX)
 
+add_subdirectory("libuv")
+add_subdirectory("jdksavdecc-mcu")
+
 option(CXX11 "Force C++11 compiler" "OFF")
 
-include_directories( "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
+if( NOT CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+       "Choose the type of build, options are: None Debug Release RelWithDebInfo
+MinSizeRel."
+       FORCE )
+endif()
 
-set(LIBS ${LIBS} jdksavdecc-mcu libuv)
+include_directories( "include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
+
+set(LIBS ${LIBS} jdksavdecc-mcu uv)
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
