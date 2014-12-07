@@ -1,0 +1,6 @@
+[submodule "jdksavdecc-mcu"]
+	path = jdksavdecc-mcu
+	url = ../jdksavdecc-mcu.git
+[submodule "libuv"]
+	path = libuv
+	url = ../libuv.git
