@@ -32,4 +32,5 @@
 
 #include "JDKSAvdeccMCU_World.hpp"
 #include "JDKSAvdeccMCU.hpp"
+#include "Obbligato.hpp"
 #include "uv.h"
