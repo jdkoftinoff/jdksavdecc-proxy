@@ -34,4 +34,15 @@
 
 namespace JDKSAvdeccProxy
 {
+class NetworkService
+{
+public:
+    NetworkService() {}
+    virtual ~NetworkService() {}
+
+    void Setup();
+
+protected:
+
+};
 }
