@@ -142,7 +142,18 @@ void NetworkService::startService()
                     10 * 1000 );
 }
 
-void NetworkService::stopService() {}
+void NetworkService::stopService()
+{
+    uv_timer_stop( &m_nop_timer );
+    uv_close( (uv_handle_t *)&m_tcp_server, NULL );
+
+    for ( auto i = m_active_client_handlers.begin();
+          i != m_active_client_handlers.end();
+          ++i )
+    {
+        delete *i;
+    }
+}
 
 void NetworkService::onNewConnection()
 {
