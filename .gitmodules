@@ -7,3 +7,6 @@
 [submodule "Obbligato"]
 	path = Obbligato
 	url = ../Obbligato.git
+[submodule "http-parser"]
+	path = http-parser
+	url = ../http-parser.git
