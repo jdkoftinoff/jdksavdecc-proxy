@@ -40,7 +40,7 @@ int main(int argc, const char **argv )
     Obbligato::Logger::addOptions(option_groups,false);
 
     JDKSAvdeccProxy::NetworkService::Settings proxy_settings;
-    proxy_settings.addOptions(option_groups);
+    proxy_settings.addOptions(option_groups,"avdecc_proxy");
 
     if( option_groups.parse(argv+1,"JDKSAvdeccProxyServer", "Version 0.1",std::cout) )
     {

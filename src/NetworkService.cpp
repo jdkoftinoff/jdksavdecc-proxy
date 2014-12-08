@@ -37,9 +37,9 @@ namespace JDKSAvdeccProxy
 {
 
 void NetworkService::Settings::addOptions(
-    ::Obbligato::Config::OptionGroups &options )
+    ::Obbligato::Config::OptionGroups &options, std::string const &prefix )
 {
-    options.add( "avdecc_proxy", "Avdecc Proxy Settings" )
+    options.add( prefix.c_str(), "Avdecc Proxy Settings" )
         .add( "listen_host",
               "127.0.0.1",
               "Hostname or IP address to listen on for incoming connections",
@@ -128,6 +128,18 @@ void NetworkService::startService()
         ob_log_error( s.str() );
         throw std::runtime_error( s.str() );
     }
+
+    // create a single 10 second timer for NOP usages
+    uv_timer_init( m_uv_loop, &m_nop_timer );
+    m_nop_timer.data = this;
+    uv_timer_start( &m_nop_timer,
+                    []( uv_timer_t *timer )
+                    {
+                        NetworkService *self = (NetworkService *)timer->data;
+                        self->onNopTimeout();
+                    },
+                    0,
+                    10 * 1000 );
 }
 
 void NetworkService::stopService() {}
@@ -140,19 +152,19 @@ void NetworkService::onNewConnection()
 
     if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
     {
-        ClientHandler *client_handler = new ClientHandler( this, client );
+        APCClientHandler *client_handler = new APCClientHandler( this, client );
         client->data = (void *)client_handler;
-        m_clients.push_back( client_handler );
+        m_active_client_handlers.push_back( client_handler );
         uv_read_start(
             (uv_stream_t *)client,
             []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
             {
-                ClientHandler *self = (ClientHandler *)handle->data;
+                APCClientHandler *self = (APCClientHandler *)handle->data;
                 self->readAlloc( suggested_size, buf );
             },
             []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
             {
-                ClientHandler *self = (ClientHandler *)stream->data;
+                APCClientHandler *self = (APCClientHandler *)stream->data;
                 if ( nread > 0 )
                 {
                     self->onClientData( nread, buf );
@@ -162,7 +174,7 @@ void NetworkService::onNewConnection()
                     uv_close( (uv_handle_t *)stream,
                               []( uv_handle_t *h )
                               {
-                        ClientHandler *self = (ClientHandler *)h->data;
+                        APCClientHandler *self = (APCClientHandler *)h->data;
                         delete self;
                     } );
                 }
@@ -174,8 +186,40 @@ void NetworkService::onNewConnection()
     }
 }
 
-void NetworkService::ClientHandler::onClientData( ssize_t nread,
-                                                  const uv_buf_t *buf )
+void NetworkService::onAvdeccData( ssize_t nread,
+                                   const uv_buf_t *buf,
+                                   const sockaddr *addr,
+                                   unsigned flags )
+{
+}
+
+void NetworkService::sendAvdeccData( const JDKSAvdeccMCU::Frame &frame ) {}
+
+void NetworkService::onNopTimeout()
+{
+    for ( auto i = m_active_client_handlers.begin();
+          i != m_active_client_handlers.end();
+          ++i )
+    {
+        ( *i )->onNopTimeout();
+    }
+}
+
+NetworkService::APCClientHandler::APCClientHandler( NetworkService *owner,
+                                                    uv_tcp_t *uv_tcp )
+    : m_owner( owner ), m_uv_tcp( uv_tcp ), m_buf()
+{
+}
+
+void NetworkService::APCClientHandler::readAlloc( size_t suggested_size,
+                                                  uv_buf_t *buf )
+{
+    buf->base = &m_buf[0];
+    buf->len = m_buf.size();
+}
+
+void NetworkService::APCClientHandler::onClientData( ssize_t nread,
+                                                     const uv_buf_t *buf )
 {
     using namespace Obbligato::IOStream;
     std::cout << label_fmt( "client data received" ) << std::endl;
@@ -189,11 +233,18 @@ void NetworkService::ClientHandler::onClientData( ssize_t nread,
     std::cout << std::endl;
 }
 
-void NetworkService::onAvdeccData( uv_udp_t *avdecc_network ) {}
+void NetworkService::APCClientHandler::onNopTimeout() {}
 
-void NetworkService::removeClient( NetworkService::ClientHandler *client )
+void NetworkService::APCClientHandler::onAvdeccData(
+    const JDKSAvdeccMCU::Frame &incoming_frame )
 {
-    m_clients.erase(
-        std::remove( m_clients.begin(), m_clients.end(), client ) );
+}
+
+void NetworkService::removeClient( NetworkService::APCClientHandler *client )
+{
+    m_active_client_handlers.erase(
+        std::remove( m_active_client_handlers.begin(),
+                     m_active_client_handlers.end(),
+                     client ) );
 }
 }
