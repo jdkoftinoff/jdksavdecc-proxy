@@ -33,7 +33,38 @@
 
 #include "JDKSAvdeccProxy/JDKSAvdeccProxy.hpp"
 
-int main()
-{
 
+int main(int argc, const char **argv )
+{
+    Obbligato::Config::OptionGroups option_groups;
+    Obbligato::Logger::addOptions(option_groups,false);
+
+    JDKSAvdeccProxy::NetworkService::Settings proxy_settings;
+    proxy_settings.addOptions(option_groups);
+
+    if( option_groups.parse(argv,"JDKSAvdeccProxyServer Version 0.1") )
+    {
+        try
+        {
+            JDKSAvdeccProxy::NetworkService service(proxy_settings);
+            service.startService();
+            while( service.runService() )
+            {
+                ;
+            }
+            service.stopService();
+        }
+        catch( std::runtime_error const &e )
+        {
+            ob_log_error("exception: runtime_error caught: ",e.what());
+        }
+        catch( std::logic_error const &e )
+        {
+            ob_log_error("exception: logic_error caught: ",e.what());
+        }
+        catch( std::exception const &e )
+        {
+            ob_log_error("exception caught: ",e.what());
+        }
+    }
 }

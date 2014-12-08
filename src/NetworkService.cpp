@@ -30,9 +30,36 @@
 */
 
 #include "JDKSAvdeccProxy/World.hpp"
-
+#include "Obbligato/Config.hpp"
 #include "JDKSAvdeccProxy/JDKSAvdeccProxy.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+void NetworkService::Settings::addOptions(::Obbligato::Config::OptionGroups &options )
+{
+    options.add("avdecc_proxy","Avdecc Proxy Settings")
+            .add("listen_host","0","Hostname or IP address to listen on for incoming connections", m_listen_host )
+            .add("listen_port", "17221", "TCP Port to listen on for incoming connections", m_listen_port )
+            .add("advertise_name", "JDKSAvdeccProxy", "Name to use for advertising via mdns-sd", m_advertise_name )
+            .add("priority","1", "Server Priority advertized via mdns-sd", m_priority )
+            .add("advertise_mdns", "0", "Advertise via mdns-sd", m_advertise_mdns )
+            .add("avdecc_interface", "en0", "Name of the Network Interface to use for AVDECC messages", m_avdecc_interface );
+}
+
+void NetworkService::startService()
+{
+
+}
+
+void NetworkService::stopService()
+{
+
+}
+
+bool NetworkService::runService()
+{
+    return true;
+}
+
 }

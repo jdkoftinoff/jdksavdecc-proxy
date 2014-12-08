@@ -34,15 +34,49 @@
 
 namespace JDKSAvdeccProxy
 {
+
+///
+/// \brief The NetworkService class
+///
+/// Encompasses the AVDECC Proxy Server network layer
+///
 class NetworkService
 {
 public:
-    NetworkService() {}
+
+    ///
+    /// \brief The Settings for the AVDECC Proxy NetworkService
+    ///
+    struct Settings
+    {
+        std::string m_listen_host;
+        std::string m_listen_port;
+        std::string m_advertise_name;
+        int32_t m_priority;
+        bool m_advertise_mdns;
+        std::string m_avdecc_interface;
+
+        ///
+        /// \brief addOptions Initialize configuration options parser
+        /// \param options reference to OptionGroups to fill in
+        ///
+        virtual void addOptions( ::Obbligato::Config::OptionGroups &options );
+    };
+
+    NetworkService(Settings &settings)
+        : m_settings( settings )
+    {
+    }
+
     virtual ~NetworkService() {}
 
-    void Setup();
+    virtual void startService();
+
+    virtual void stopService();
+
+    virtual bool runService();
 
 protected:
-
+    Settings &m_settings;
 };
 }
