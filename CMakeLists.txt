@@ -7,6 +7,7 @@ set(CXX11 "ON")
 add_subdirectory("libuv")
 add_subdirectory("jdksavdecc-mcu")
 add_subdirectory("Obbligato")
+add_subdirectory("http-parser")
 
 
 if( NOT CMAKE_BUILD_TYPE )
@@ -16,9 +17,9 @@ MinSizeRel."
        FORCE )
 endif()
 
-include_directories( "include" "Obbligato/include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
+include_directories( "include" "http-parser" "Obbligato/include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
 
-set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato)
+set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato http-parser)
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})

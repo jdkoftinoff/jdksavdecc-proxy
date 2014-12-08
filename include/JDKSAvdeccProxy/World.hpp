@@ -34,3 +34,4 @@
 #include "JDKSAvdeccMCU.hpp"
 #include "Obbligato.hpp"
 #include "uv.h"
+#include "http_parser.h"
