@@ -2,10 +2,12 @@ cmake_minimum_required (VERSION 2.8)
 set(PROJECT jdksavdecc-proxy)
 project(${PROJECT} C CXX)
 
+set(CXX11 "ON")
+
 add_subdirectory("libuv")
 add_subdirectory("jdksavdecc-mcu")
+add_subdirectory("Obbligato")
 
-option(CXX11 "Force C++11 compiler" "OFF")
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
@@ -14,9 +16,9 @@ MinSizeRel."
        FORCE )
 endif()
 
-include_directories( "include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
+include_directories( "include" "Obbligato/include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
 
-set(LIBS ${LIBS} jdksavdecc-mcu uv)
+set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato)
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
