@@ -42,8 +42,7 @@ namespace JDKSAvdeccProxy
 ///
 class NetworkService
 {
-public:
-
+  public:
     ///
     /// \brief The Settings for the AVDECC Proxy NetworkService
     ///
@@ -63,10 +62,7 @@ public:
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options );
     };
 
-    NetworkService(Settings &settings)
-        : m_settings( settings )
-    {
-    }
+    NetworkService( Settings &settings ) : m_settings( settings ) {}
 
     virtual ~NetworkService() {}
 
@@ -76,7 +72,7 @@ public:
 
     virtual bool runService();
 
-protected:
+  protected:
     Settings &m_settings;
 };
 }
