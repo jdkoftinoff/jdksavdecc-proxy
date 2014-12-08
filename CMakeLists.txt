@@ -23,7 +23,7 @@ set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato http-parser)
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
-    set(LIBS ${LIBS} wpcap)
+    set(LIBS ${LIBS} wpcap psapi)
     link_directories($ENV{PCAP_LIBRARY})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     set(LIBS ${LIBS} pcap)

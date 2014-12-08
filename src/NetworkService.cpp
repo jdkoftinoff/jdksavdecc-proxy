@@ -178,8 +178,7 @@ void NetworkService::ClientHandler::onClientData( ssize_t nread,
                                                   const uv_buf_t *buf )
 {
     using namespace Obbligato::IOStream;
-    std::cout << label_fmt( "client data received" )
-              << hex_fmt( m_uv_tcp->io_watcher.fd ) << std::endl;
+    std::cout << label_fmt( "client data received" ) << std::endl;
     std::cout << label_fmt( "length" ) << hex_fmt( nread ) << std::endl;
 
     for ( ssize_t i = 0; i < nread; ++i )

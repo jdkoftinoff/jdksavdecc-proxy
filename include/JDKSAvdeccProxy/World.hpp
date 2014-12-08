@@ -33,5 +33,6 @@
 #include "JDKSAvdeccMCU_World.hpp"
 #include "JDKSAvdeccMCU.hpp"
 #include "Obbligato.hpp"
+#define _SSIZE_T_DEFINED
 #include "uv.h"
 #include "http_parser.h"
