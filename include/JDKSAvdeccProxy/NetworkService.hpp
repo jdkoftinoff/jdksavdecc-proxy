@@ -62,17 +62,43 @@ class NetworkService
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options );
     };
 
-    NetworkService( Settings &settings ) : m_settings( settings ) {}
+    ///
+    /// \brief NetworkService constructor
+    /// \param settings reference to the initialized Settings for the service
+    ///
+    explicit NetworkService( Settings const &settings ) : m_settings( settings )
+    {
+    }
 
+    ///
+    /// \brief ~NetworkService
+    /// Destroy the network service immediately
+    ///
     virtual ~NetworkService() {}
 
+    ///
+    /// \brief startService
+    /// Start the network service
+    ///
     virtual void startService();
 
+    ///
+    /// \brief stopService
+    /// Stop the network service
+    ///
     virtual void stopService();
 
+    ///
+    /// \brief runService
+    /// Run the network service loop.  This method needs to be called repeatedly
+    /// until it return false or throws and exception.
+    ///
+    /// \return false if the network service needs to stop. true if the network
+    /// service is still running.
+    ///
     virtual bool runService();
 
   protected:
-    Settings &m_settings;
+    Settings const &m_settings;
 };
 }
