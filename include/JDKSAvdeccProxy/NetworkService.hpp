@@ -49,7 +49,7 @@ class NetworkService
     struct Settings
     {
         std::string m_listen_host;
-        std::string m_listen_port;
+        int m_listen_port;
         std::string m_advertise_name;
         int32_t m_priority;
         bool m_advertise_mdns;
@@ -66,9 +66,7 @@ class NetworkService
     /// \brief NetworkService constructor
     /// \param settings reference to the initialized Settings for the service
     ///
-    explicit NetworkService( Settings const &settings ) : m_settings( settings )
-    {
-    }
+    explicit NetworkService( Settings const &settings, uv_loop_t *uv_loop );
 
     ///
     /// \brief ~NetworkService
@@ -88,17 +86,40 @@ class NetworkService
     ///
     virtual void stopService();
 
-    ///
-    /// \brief runService
-    /// Run the network service loop.  This method needs to be called repeatedly
-    /// until it return false or throws and exception.
-    ///
-    /// \return false if the network service needs to stop. true if the network
-    /// service is still running.
-    ///
-    virtual bool runService();
+    class ClientHandler
+    {
+      public:
+        ClientHandler( NetworkService *owner, uv_tcp_t *uv_tcp )
+            : m_owner( owner ), m_uv_tcp( uv_tcp ), m_buf()
+        {
+        }
+        virtual ~ClientHandler() { m_owner->removeClient( this ); }
+
+        virtual void readAlloc( size_t suggested_size, uv_buf_t *buf )
+        {
+            buf->base = &m_buf[0];
+            buf->len = m_buf.size();
+        }
+
+        virtual void onClientData( ssize_t nread, const uv_buf_t *buf );
+
+      protected:
+        NetworkService *m_owner;
+        uv_tcp_t *m_uv_tcp;
+        std::array<char, 8192> m_buf;
+    };
+
+  protected:
+    virtual void onNewConnection();
+
+    virtual void onAvdeccData( uv_udp_t *avdecc_network );
+
+    void removeClient( ClientHandler *client );
 
   protected:
     Settings const &m_settings;
+    uv_loop_t *m_uv_loop;
+    uv_tcp_t m_tcp_server;
+    std::vector<ClientHandler *> m_clients;
 };
 }

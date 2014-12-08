@@ -41,7 +41,7 @@ void NetworkService::Settings::addOptions(
 {
     options.add( "avdecc_proxy", "Avdecc Proxy Settings" )
         .add( "listen_host",
-              "0",
+              "127.0.0.1",
               "Hostname or IP address to listen on for incoming connections",
               m_listen_host )
         .add( "listen_port",
@@ -63,9 +63,138 @@ void NetworkService::Settings::addOptions(
               m_avdecc_interface );
 }
 
-void NetworkService::startService() {}
+NetworkService::NetworkService( const NetworkService::Settings &settings,
+                                uv_loop_t *uv_loop )
+    : m_settings( settings ), m_uv_loop( uv_loop )
+{
+    // initialize the uv tcp server object
+    uv_tcp_init( m_uv_loop, &m_tcp_server );
+    m_tcp_server.data = this;
+}
+
+void NetworkService::startService()
+{
+    int r = 0;
+
+    // try ipv6 first
+    {
+        sockaddr_in6 ip6_bind_addr;
+        r = uv_ip6_addr( m_settings.m_listen_host.c_str(),
+                         m_settings.m_listen_port,
+                         &ip6_bind_addr );
+        if ( !r )
+        {
+            r = uv_tcp_bind( &m_tcp_server, (sockaddr *)&ip6_bind_addr, 0 );
+        }
+    }
+
+    // if unable, try ipv4
+    if ( r )
+    {
+        sockaddr_in ip4_bind_addr;
+        r = uv_ip4_addr( m_settings.m_listen_host.c_str(),
+                         m_settings.m_listen_port,
+                         &ip4_bind_addr );
+        if ( !r )
+        {
+            r = uv_tcp_bind( &m_tcp_server, (sockaddr *)&ip4_bind_addr, 0 );
+        }
+    }
+
+    // if we were able to bind, try listen
+    if ( !r )
+    {
+        r = uv_listen( (uv_stream_t *)&m_tcp_server,
+                       128,
+                       []( uv_stream_t *server, int status )
+                       {
+            if ( !status )
+            {
+                NetworkService *self = (NetworkService *)server->data;
+                self->onNewConnection();
+            }
+        } );
+    }
+
+    // if we got some sort of error, log it and throw
+    if ( r )
+    {
+        std::ostringstream s;
+
+        s << "NetworkService::startService() error listening to: "
+          << m_settings.m_listen_host << ":" << m_settings.m_listen_port
+          << " : " << uv_err_name( r );
+
+        ob_log_error( s.str() );
+        throw std::runtime_error( s.str() );
+    }
+}
 
 void NetworkService::stopService() {}
 
-bool NetworkService::runService() { return true; }
+void NetworkService::onNewConnection()
+{
+    uv_tcp_t *client = (uv_tcp_t *)malloc( sizeof( uv_tcp_t ) );
+    uv_tcp_init( m_uv_loop, client );
+    client->data = this;
+
+    if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
+    {
+        ClientHandler *client_handler = new ClientHandler( this, client );
+        client->data = (void *)client_handler;
+        m_clients.push_back( client_handler );
+        uv_read_start(
+            (uv_stream_t *)client,
+            []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
+            {
+                ClientHandler *self = (ClientHandler *)handle->data;
+                self->readAlloc( suggested_size, buf );
+            },
+            []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
+            {
+                ClientHandler *self = (ClientHandler *)stream->data;
+                if ( nread > 0 )
+                {
+                    self->onClientData( nread, buf );
+                }
+                else
+                {
+                    uv_close( (uv_handle_t *)stream,
+                              []( uv_handle_t *h )
+                              {
+                        ClientHandler *self = (ClientHandler *)h->data;
+                        delete self;
+                    } );
+                }
+            } );
+    }
+    else
+    {
+        uv_close( (uv_handle_t *)client, NULL );
+    }
+}
+
+void NetworkService::ClientHandler::onClientData( ssize_t nread,
+                                                  const uv_buf_t *buf )
+{
+    using namespace Obbligato::IOStream;
+    std::cout << label_fmt( "client data received" )
+              << hex_fmt( m_uv_tcp->io_watcher.fd ) << std::endl;
+    std::cout << label_fmt( "length" ) << hex_fmt( nread ) << std::endl;
+
+    for ( ssize_t i = 0; i < nread; ++i )
+    {
+        uint8_t v = (uint8_t)buf->base[i];
+        std::cout << hex_fmt( v );
+    }
+    std::cout << std::endl;
+}
+
+void NetworkService::onAvdeccData( uv_udp_t *avdecc_network ) {}
+
+void NetworkService::removeClient( NetworkService::ClientHandler *client )
+{
+    m_clients.erase(
+        std::remove( m_clients.begin(), m_clients.end(), client ) );
+}
 }

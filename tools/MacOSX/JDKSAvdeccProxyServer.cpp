@@ -42,16 +42,17 @@ int main(int argc, const char **argv )
     JDKSAvdeccProxy::NetworkService::Settings proxy_settings;
     proxy_settings.addOptions(option_groups);
 
-    if( option_groups.parse(argv,"JDKSAvdeccProxyServer Version 0.1") )
+    if( option_groups.parse(argv+1,"JDKSAvdeccProxyServer", "Version 0.1",std::cout) )
     {
+        uv_loop_t *uv_loop = uv_default_loop();
+
         try
         {
-            JDKSAvdeccProxy::NetworkService service(proxy_settings);
+            JDKSAvdeccProxy::NetworkService service(proxy_settings,uv_loop);
             service.startService();
-            while( service.runService() )
-            {
-                ;
-            }
+
+            uv_run( uv_loop, UV_RUN_DEFAULT );
+
             service.stopService();
         }
         catch( std::runtime_error const &e )
