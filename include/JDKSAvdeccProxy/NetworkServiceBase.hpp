@@ -54,14 +54,14 @@ class NetworkServiceBase
     class TCPClientHandler
     {
       public:
-
         ///
         /// \brief ~TCPClientHandler Destroy the TCPClientHandler
         ///
         virtual ~TCPClientHandler() {}
 
         ///
-        /// \brief startClient do any special initializations for the client handler
+        /// \brief startClient do any special initializations for the client
+        /// handler
         ///
         virtual void startClient() = 0;
 
@@ -103,5 +103,11 @@ class NetworkServiceBase
     /// Stop the network service
     ///
     virtual void stopService() = 0;
+
+    ///
+    /// \brief getLoop get the libuv uv_loop_t for this service
+    /// \return uv_loop_t pointer
+    ///
+    virtual uv_loop_t *getLoop() = 0;
 };
 }

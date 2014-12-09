@@ -37,6 +37,7 @@
 int main(int argc, const char **argv )
 {
     Obbligato::Config::OptionGroups option_groups;
+
     Obbligato::Logger::addOptions(option_groups,false);
 
     JDKSAvdeccProxy::NetworkService::Settings proxy_settings;

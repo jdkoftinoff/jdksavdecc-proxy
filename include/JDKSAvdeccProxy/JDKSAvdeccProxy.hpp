@@ -32,6 +32,7 @@
 
 #include "JDKSAvdeccMCU_World.hpp"
 #include "Aps.hpp"
+#include "NetworkServiceBase.hpp"
 #include "NetworkService.hpp"
 
 namespace JDKSAvdeccProxy

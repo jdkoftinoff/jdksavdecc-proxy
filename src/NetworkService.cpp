@@ -66,7 +66,7 @@ void NetworkService::Settings::addOptions(
 
 NetworkService::NetworkService( const NetworkService::Settings &settings,
                                 uv_loop_t *uv_loop )
-    : m_settings( settings ), m_uv_loop( uv_loop )
+    : m_settings( settings ), m_uv_loop( uv_loop ), m_num_clients_created( 0 )
 {
     // initialize the uv tcp server object
     uv_tcp_init( m_uv_loop, &m_tcp_server );
@@ -152,6 +152,7 @@ void NetworkService::stopService()
           i != m_active_client_handlers.end();
           ++i )
     {
+        ( *i )->stopClient();
         delete *i;
     }
 }
@@ -164,7 +165,8 @@ void NetworkService::onNewConnection()
 
     if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
     {
-        APCClientHandler *client_handler = new APCClientHandler( this, client );
+        APCClientHandler *client_handler
+            = new APCClientHandler( this, client, m_num_clients_created++ );
         client->data = (void *)client_handler;
         m_active_client_handlers.push_back( client_handler );
         client_handler->startClient();
@@ -195,9 +197,17 @@ void NetworkService::onNopTimeout()
 }
 
 NetworkService::APCClientHandler::APCClientHandler( NetworkService *owner,
-                                                    uv_tcp_t *uv_tcp )
-    : m_owner( owner ), m_uv_tcp( uv_tcp ), m_buf()
+                                                    uv_tcp_t *uv_tcp,
+                                                    int client_id )
+    : m_owner( owner )
+    , m_uv_tcp( uv_tcp )
+    , m_incoming_buf_storage()
+    , m_client_id( client_id )
 {
+    m_outgoing_nop_buf.base = 0;
+    m_outgoing_nop_buf.len = 0;
+
+    m_nop_write_request.data = 0;
 }
 
 NetworkService::APCClientHandler::~APCClientHandler()
@@ -208,59 +218,134 @@ NetworkService::APCClientHandler::~APCClientHandler()
 void NetworkService::APCClientHandler::startClient()
 {
     uv_read_start(
+
+        // Start reading for this socket
         (uv_stream_t *)m_uv_tcp,
+
+        // When the socket is readable, call readAlloc() to allocate buffer
+        // space for the data
         []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
         {
             APCClientHandler *self = (APCClientHandler *)handle->data;
             self->readAlloc( suggested_size, buf );
         },
+
+        // When data for the socket has been read, call the onClientData()
+        // method with the data
         []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
         {
             APCClientHandler *self = (APCClientHandler *)stream->data;
-            if ( nread > 0 )
-            {
-                self->onClientData( nread, buf );
-            }
-            else
-            {
-                uv_close( (uv_handle_t *)stream,
-                          []( uv_handle_t *h )
-                          {
-                    APCClientHandler *self = (APCClientHandler *)h->data;
-                    delete self;
-                } );
-            }
+            self->onClientData( nread, buf );
         } );
 }
 
 void NetworkService::APCClientHandler::stopClient()
 {
+    // stop the reading of the socket
     uv_read_stop( (uv_stream_t *)m_uv_tcp );
+
+    // schedule the socket to be closed and delete this client object when it is
+    // closed
+    uv_close( (uv_handle_t *)m_uv_tcp,
+              []( uv_handle_t *h )
+              {
+        APCClientHandler *self = (APCClientHandler *)h->data;
+        delete self;
+    } );
 }
 
 void NetworkService::APCClientHandler::readAlloc( size_t suggested_size,
                                                   uv_buf_t *buf )
 {
-    buf->base = &m_buf[0];
-    buf->len = m_buf.size();
+    // the buffer is always pre-allocated
+    buf->base = &m_incoming_buf_storage[0];
+    buf->len = m_incoming_buf_storage.size();
 }
 
 void NetworkService::APCClientHandler::onClientData( ssize_t nread,
                                                      const uv_buf_t *buf )
 {
     using namespace Obbligato::IOStream;
-    std::cout << label_fmt( "client data received" ) << std::endl;
-    std::cout << label_fmt( "length" ) << hex_fmt( nread ) << std::endl;
 
-    for ( ssize_t i = 0; i < nread; ++i )
+    if ( nread <= 0 )
     {
-        uint8_t v = (uint8_t)buf->base[i];
-        std::cout << hex_fmt( v );
+        // If the incoming socket is disconnected then stop this client object
+        stopClient();
     }
-    std::cout << std::endl;
+    else
+    {
+        // incoming data was received, handle it
+        std::cout << label_fmt( "client" ) << hex_fmt( m_client_id )
+                  << std::endl;
+        std::cout << label_fmt( "received data length" ) << hex_fmt( nread )
+                  << std::endl;
+
+        for ( ssize_t i = 0; i < nread; ++i )
+        {
+            uint8_t v = (uint8_t)buf->base[i];
+            std::cout << octet_fmt( v );
+        }
+        std::cout << std::endl;
+    }
 }
 
-void NetworkService::APCClientHandler::onNopTimeout() {}
+void NetworkService::APCClientHandler::onSentNopData( uv_write_t *req,
+                                                      int status )
+{
+    if ( status )
+    {
+        // error sending
+        using namespace Obbligato::IOStream;
+        std::cout << label_fmt( "unable to send NOP for client" )
+                  << hex_fmt( m_client_id ) << std::endl;
+        stopClient();
+    }
+    else
+    {
+        // clear buf for next send
+        req->data = 0;
+        m_outgoing_nop_buf.base = 0;
+    }
+}
+
+void NetworkService::APCClientHandler::onNopTimeout()
+{
+    using namespace Obbligato::IOStream;
+    std::cout << label_fmt( "nop timeout for client" ) << hex_fmt( m_client_id )
+              << std::endl;
+
+    if ( m_nop_write_request.data == 0 && m_outgoing_nop_buf.base == 0 )
+    {
+        jdksavdecc_appdu appdu;
+        jdksavdecc_appdu_init( &appdu );
+        jdksavdecc_appdu_set_nop( &appdu );
+
+        jdksavdecc_appdu_write( &appdu,
+                                &m_outgoing_nop_buf_storage[0],
+                                0,
+                                m_outgoing_nop_buf_storage.size() );
+
+        m_outgoing_nop_buf.base = &m_outgoing_nop_buf_storage[0];
+        m_outgoing_nop_buf.len = JDKSAVDECC_APPDU_HEADER_LEN
+                                 + appdu.payload_length;
+
+        m_nop_write_request.data = this;
+        uv_write( &m_nop_write_request,
+                  (uv_stream_t *)m_uv_tcp,
+                  &m_outgoing_nop_buf,
+                  1,
+                  []( uv_write_t *write_req, int status )
+                  {
+            APCClientHandler *self = (APCClientHandler *)write_req->data;
+            self->onSentNopData( write_req, status );
+        } );
+    }
+    else
+    {
+        std::cout << label_fmt( "unable to send NOP for client" )
+                  << hex_fmt( m_client_id ) << std::endl;
+    }
+}
 
 void NetworkService::APCClientHandler::onAvdeccData(
     const JDKSAvdeccMCU::Frame &incoming_frame )
@@ -269,10 +354,11 @@ void NetworkService::APCClientHandler::onAvdeccData(
 
 void NetworkService::removeClient( NetworkService::APCClientHandler *client )
 {
-    client->stopClient();
     m_active_client_handlers.erase(
         std::remove( m_active_client_handlers.begin(),
                      m_active_client_handlers.end(),
                      client ) );
 }
+
+uv_loop_t *NetworkService::getLoop() { return m_uv_loop; }
 }

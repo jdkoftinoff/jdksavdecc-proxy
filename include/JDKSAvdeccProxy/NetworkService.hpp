@@ -107,7 +107,9 @@ class NetworkService : public NetworkServiceBase
         /// \param owner Owner of this client
         /// \param uv_tcp TCP socket to the incoming client
         ///
-        APCClientHandler( NetworkService *owner, uv_tcp_t *uv_tcp );
+        APCClientHandler( NetworkService *owner,
+                          uv_tcp_t *uv_tcp,
+                          int client_id );
 
         ///
         /// \brief ~ClientHandler Destructor
@@ -117,7 +119,8 @@ class NetworkService : public NetworkServiceBase
         virtual ~APCClientHandler();
 
         ///
-        /// \brief startClient do any special initializations for the client handler
+        /// \brief startClient do any special initializations for the client
+        /// handler
         ///
         virtual void startClient();
 
@@ -142,6 +145,14 @@ class NetworkService : public NetworkServiceBase
         virtual void onClientData( ssize_t nread, const uv_buf_t *buf );
 
         ///
+        /// \brief onSentNopData called when a NOP message was actually
+        /// transmitted
+        /// \param req the uv_write_t request object pointer
+        /// \param status 0 on success
+        ///
+        virtual void onSentNopData( uv_write_t *req, int status );
+
+        ///
         /// \brief onNopTimeout callback for the 10 second NOP timeout
         ///
         virtual void onNopTimeout();
@@ -160,8 +171,20 @@ class NetworkService : public NetworkServiceBase
         /// The socket which connects to the incoming AVDECC Proxy Client (APS)
         uv_tcp_t *m_uv_tcp;
 
-        /// The buffer array space for incoming TCP data from the APS
-        std::array<char, 8192> m_buf;
+        /// The buffer array space for incoming TCP data from the APC
+        std::array<char, 8192> m_incoming_buf_storage;
+
+        /// The buffer array space for outgoing TCP data to the APC
+        std::array<char, 128> m_outgoing_nop_buf_storage;
+
+        /// The uv_buf for currently outgoing data to TCP
+        uv_buf_t m_outgoing_nop_buf;
+
+        /// The nop write request handler messages
+        uv_write_t m_nop_write_request;
+
+        /// Identifier for this client object
+        int m_client_id;
     };
 
   protected:
@@ -198,11 +221,18 @@ class NetworkService : public NetworkServiceBase
     ///
     void removeClient( APCClientHandler *client );
 
+    ///
+    /// \brief getLoop get the libuv uv_loop_t for this service
+    /// \return uv_loop_t pointer
+    ///
+    virtual uv_loop_t *getLoop();
+
   protected:
     Settings const &m_settings;
     uv_loop_t *m_uv_loop;
     uv_tcp_t m_tcp_server;
     uv_timer_t m_nop_timer;
+    int m_num_clients_created;
 
     std::vector<APCClientHandler *> m_active_client_handlers;
 };
