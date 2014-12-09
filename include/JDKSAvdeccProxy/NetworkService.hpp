@@ -31,62 +31,7 @@
 #pragma once
 
 #include "World.hpp"
-
-class NetworkServiceBase
-{
-  public:
-    ///
-    /// \brief The Settings base class for the NetworkService
-    ///
-    struct Settings
-    {
-        ///
-        /// \brief addOptions Initialize configuration options parser
-        /// \param options reference to OptionGroups to fill in
-        ///
-        virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                                 std::string const &prefix ) = 0;
-    };
-
-    class TCPClientHandler
-    {
-      public:
-        virtual ~TCPClientHandler() {}
-
-        ///
-        /// \brief readAlloc callback to get data buffer address for incoming
-        /// data
-        /// \param suggested_size libuv suggested size
-        /// \param buf uv_buf_t to be filled in
-        ///
-        virtual void readAlloc( size_t suggested_size, uv_buf_t *buf ) = 0;
-
-        ///
-        /// \brief onClientData callback for data received from client via TCP
-        /// \param nread number of bytes read
-        /// \param buf pointer to uv_buf_t containing data
-        ///
-        virtual void onClientData( ssize_t nread, const uv_buf_t *buf ) = 0;
-    };
-
-    ///
-    /// \brief ~NetworkService
-    /// Destroy the network service immediately
-    ///
-    virtual ~NetworkServiceBase() {}
-
-    ///
-    /// \brief startService
-    /// Start the network service
-    ///
-    virtual void startService() = 0;
-
-    ///
-    /// \brief stopService
-    /// Stop the network service
-    ///
-    virtual void stopService() = 0;
-};
+#include "NetworkServiceBase.hpp"
 
 namespace JDKSAvdeccProxy
 {
@@ -116,7 +61,7 @@ class NetworkService : public NetworkServiceBase
         /// \param options reference to OptionGroups to fill in
         ///
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                                 std::string const &prefix );
+                                 std::string const &options_prefix );
     };
 
     ///
@@ -169,7 +114,17 @@ class NetworkService : public NetworkServiceBase
         ///
         /// de-registers itself from the owner
         ///
-        virtual ~APCClientHandler() { m_owner->removeClient( this ); }
+        virtual ~APCClientHandler();
+
+        ///
+        /// \brief startClient do any special initializations for the client handler
+        ///
+        virtual void startClient();
+
+        ///
+        /// \brief stopClient stop any pending requests for the client handler
+        ///
+        virtual void stopClient();
 
         ///
         /// \brief readAlloc callback to get data buffer address for incoming

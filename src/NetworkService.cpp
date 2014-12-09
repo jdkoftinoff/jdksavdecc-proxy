@@ -37,9 +37,10 @@ namespace JDKSAvdeccProxy
 {
 
 void NetworkService::Settings::addOptions(
-    ::Obbligato::Config::OptionGroups &options, std::string const &prefix )
+    ::Obbligato::Config::OptionGroups &options,
+    std::string const &options_prefix )
 {
-    options.add( prefix.c_str(), "Avdecc Proxy Settings" )
+    options.add( options_prefix.c_str(), "Avdecc Proxy Settings" )
         .add( "listen_host",
               "127.0.0.1",
               "Hostname or IP address to listen on for incoming connections",
@@ -166,30 +167,7 @@ void NetworkService::onNewConnection()
         APCClientHandler *client_handler = new APCClientHandler( this, client );
         client->data = (void *)client_handler;
         m_active_client_handlers.push_back( client_handler );
-        uv_read_start(
-            (uv_stream_t *)client,
-            []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
-            {
-                APCClientHandler *self = (APCClientHandler *)handle->data;
-                self->readAlloc( suggested_size, buf );
-            },
-            []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
-            {
-                APCClientHandler *self = (APCClientHandler *)stream->data;
-                if ( nread > 0 )
-                {
-                    self->onClientData( nread, buf );
-                }
-                else
-                {
-                    uv_close( (uv_handle_t *)stream,
-                              []( uv_handle_t *h )
-                              {
-                        APCClientHandler *self = (APCClientHandler *)h->data;
-                        delete self;
-                    } );
-                }
-            } );
+        client_handler->startClient();
     }
     else
     {
@@ -220,6 +198,44 @@ NetworkService::APCClientHandler::APCClientHandler( NetworkService *owner,
                                                     uv_tcp_t *uv_tcp )
     : m_owner( owner ), m_uv_tcp( uv_tcp ), m_buf()
 {
+}
+
+NetworkService::APCClientHandler::~APCClientHandler()
+{
+    m_owner->removeClient( this );
+}
+
+void NetworkService::APCClientHandler::startClient()
+{
+    uv_read_start(
+        (uv_stream_t *)m_uv_tcp,
+        []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
+        {
+            APCClientHandler *self = (APCClientHandler *)handle->data;
+            self->readAlloc( suggested_size, buf );
+        },
+        []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
+        {
+            APCClientHandler *self = (APCClientHandler *)stream->data;
+            if ( nread > 0 )
+            {
+                self->onClientData( nread, buf );
+            }
+            else
+            {
+                uv_close( (uv_handle_t *)stream,
+                          []( uv_handle_t *h )
+                          {
+                    APCClientHandler *self = (APCClientHandler *)h->data;
+                    delete self;
+                } );
+            }
+        } );
+}
+
+void NetworkService::APCClientHandler::stopClient()
+{
+    uv_read_stop( (uv_stream_t *)m_uv_tcp );
 }
 
 void NetworkService::APCClientHandler::readAlloc( size_t suggested_size,
@@ -253,6 +269,7 @@ void NetworkService::APCClientHandler::onAvdeccData(
 
 void NetworkService::removeClient( NetworkService::APCClientHandler *client )
 {
+    client->stopClient();
     m_active_client_handlers.erase(
         std::remove( m_active_client_handlers.begin(),
                      m_active_client_handlers.end(),
