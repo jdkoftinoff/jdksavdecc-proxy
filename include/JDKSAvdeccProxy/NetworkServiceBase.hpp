@@ -35,6 +35,7 @@
 namespace JDKSAvdeccProxy
 {
 
+
 class NetworkServiceBase
 {
   public:
@@ -49,41 +50,6 @@ class NetworkServiceBase
         ///
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
                                  std::string const &options_prefix ) = 0;
-    };
-
-    class TCPClientHandler
-    {
-      public:
-        ///
-        /// \brief ~TCPClientHandler Destroy the TCPClientHandler
-        ///
-        virtual ~TCPClientHandler() {}
-
-        ///
-        /// \brief startClient do any special initializations for the client
-        /// handler
-        ///
-        virtual void startClient() = 0;
-
-        ///
-        /// \brief stopClient stop any pending requests for the client handler
-        ///
-        virtual void stopClient() = 0;
-
-        ///
-        /// \brief readAlloc callback to get data buffer address for incoming
-        /// data
-        /// \param suggested_size libuv suggested size
-        /// \param buf uv_buf_t to be filled in
-        ///
-        virtual void readAlloc( size_t suggested_size, uv_buf_t *buf ) = 0;
-
-        ///
-        /// \brief onClientData callback for data received from client via TCP
-        /// \param nread number of bytes read
-        /// \param buf pointer to uv_buf_t containing data
-        ///
-        virtual void onClientData( ssize_t nread, const uv_buf_t *buf ) = 0;
     };
 
     ///

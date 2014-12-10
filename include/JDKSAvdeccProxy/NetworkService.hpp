@@ -32,9 +32,17 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
+#include "AppMessage.hpp"
+#include "APCClientHandler.hpp"
+#include "RawClientHandler.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class APCClientHandler;
+class RawNetworkHandler;
+struct AppMessage;
+
 
 ///
 /// \brief The NetworkService class
@@ -89,113 +97,13 @@ class NetworkService : public NetworkServiceBase
     virtual void stopService();
 
     ///
-    /// \brief The ClientHandler class
-    ///
-    /// Handles all interactions with an AVDECC Proxy Client via
-    /// the incoming TCP connection
-    ///
-    class APCClientHandler : public NetworkServiceBase::TCPClientHandler
-    {
-      public:
-        ///
-        /// \brief APCClientHandler Constructor
-        ///
-        /// Construct an AVDECC Proxy Server ClientHandler object,
-        /// attached to the owning NetworkService, and the
-        /// uv_tcp socket that is attached to the incoming client
-        ///
-        /// \param owner Owner of this client
-        /// \param uv_tcp TCP socket to the incoming client
-        ///
-        APCClientHandler( NetworkService *owner,
-                          uv_tcp_t *uv_tcp,
-                          int client_id );
-
-        ///
-        /// \brief ~ClientHandler Destructor
-        ///
-        /// de-registers itself from the owner
-        ///
-        virtual ~APCClientHandler();
-
-        ///
-        /// \brief startClient do any special initializations for the client
-        /// handler
-        ///
-        virtual void startClient();
-
-        ///
-        /// \brief stopClient stop any pending requests for the client handler
-        ///
-        virtual void stopClient();
-
-        ///
-        /// \brief readAlloc callback to get data buffer address for incoming
-        /// data
-        /// \param suggested_size libuv suggested size
-        /// \param buf uv_buf_t to be filled in
-        ///
-        virtual void readAlloc( size_t suggested_size, uv_buf_t *buf );
-
-        ///
-        /// \brief onClientData callback for data received from client via TCP
-        /// \param nread number of bytes read
-        /// \param buf pointer to uv_buf_t containing data
-        ///
-        virtual void onClientData( ssize_t nread, const uv_buf_t *buf );
-
-        ///
-        /// \brief onSentNopData called when a NOP message was actually
-        /// transmitted
-        /// \param req the uv_write_t request object pointer
-        /// \param status 0 on success
-        ///
-        virtual void onSentNopData( uv_write_t *req, int status );
-
-        ///
-        /// \brief onNopTimeout callback for the 10 second NOP timeout
-        ///
-        virtual void onNopTimeout();
-
-        ///
-        /// \brief onAvdeccData callback for received AVDECC message from AVDECC
-        /// network
-        /// \param incoming_frame The AVDECC received data
-        ///
-        virtual void onAvdeccData( JDKSAvdeccMCU::Frame const &incoming_frame );
-
-      protected:
-        /// The owner of the Client Connection
-        NetworkService *m_owner;
-
-        /// The socket which connects to the incoming AVDECC Proxy Client (APS)
-        uv_tcp_t *m_uv_tcp;
-
-        /// The buffer array space for incoming TCP data from the APC
-        std::array<char, 8192> m_incoming_buf_storage;
-
-        /// The buffer array space for outgoing TCP data to the APC
-        std::array<char, 128> m_outgoing_nop_buf_storage;
-
-        /// The uv_buf for currently outgoing data to TCP
-        uv_buf_t m_outgoing_nop_buf;
-
-        /// The nop write request handler messages
-        uv_write_t m_nop_write_request;
-
-        /// Identifier for this client object
-        int m_client_id;
-    };
-
-  protected:
-    ///
     /// \brief onNewConnection A new TCP connection is accepted
     ///
     virtual void onNewConnection();
 
     ///
     /// \brief onAvdeccData Avdecc data is received
-    /// This methd forwards the avdecc data to all ClientHandler objects
+    /// This method forwards the avdecc data to all ClientHandler objects
     ///
     virtual void onAvdeccData( ssize_t nread,
                                const uv_buf_t *buf,
@@ -215,11 +123,12 @@ class NetworkService : public NetworkServiceBase
     virtual void onNopTimeout();
 
     ///
-    /// \brief removeClient Remove the specified client from the active clients
+    /// \brief removeAPCClient Remove the specified client from the active
+    /// clients
     /// list
-    /// \param client ClientHandler pointer to remove
+    /// \param client TCPClientHandler pointer to remove
     ///
-    void removeClient( APCClientHandler *client );
+    virtual void removeAPCClient( APCClientHandler *client );
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
@@ -236,4 +145,5 @@ class NetworkService : public NetworkServiceBase
 
     std::vector<APCClientHandler *> m_active_client_handlers;
 };
+
 }
