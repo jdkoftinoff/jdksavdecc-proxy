@@ -28,16 +28,31 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
-#pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
-#include "JDKSAvdeccMCU.hpp"
-#include "Obbligato.hpp"
-#define _SSIZE_T_DEFINED
-#include "uv.h"
-#include "http_parser.h"
+#include "JDKSAvdeccProxy/World.hpp"
+#include "Obbligato/Config.hpp"
+#include "JDKSAvdeccProxy/APCClientHandler.hpp"
+#include "JDKSAvdeccProxy/NetworkService.hpp"
 
 namespace JDKSAvdeccProxy
 {
-using namespace JDKSAvdeccMCU;
+
+RawNetworkHandler::RawNetworkHandler( JDKSAvdeccProxy::NetworkService *owner,
+                                      uv_loop_t *uv_loop )
+{
+}
+
+RawNetworkHandler::~RawNetworkHandler() {}
+
+void RawNetworkHandler::startClient() {}
+
+void RawNetworkHandler::stopClient() {}
+
+void RawNetworkHandler::readAlloc( size_t suggested_size, uv_buf_t *buf ) {}
+
+void RawNetworkHandler::onClientData( const Frame &frame ) {}
+
+void RawNetworkHandler::onSentData( uv_write_t *req, int status ) {}
+
+void RawNetworkHandler::onLinkChange( bool link_up ) {}
 }

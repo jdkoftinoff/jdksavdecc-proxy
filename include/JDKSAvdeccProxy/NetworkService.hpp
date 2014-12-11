@@ -34,7 +34,7 @@
 #include "NetworkServiceBase.hpp"
 #include "AppMessage.hpp"
 #include "APCClientHandler.hpp"
-#include "RawClientHandler.hpp"
+#include "RawNetworkHandler.hpp"
 
 namespace JDKSAvdeccProxy
 {
@@ -42,7 +42,6 @@ namespace JDKSAvdeccProxy
 class APCClientHandler;
 class RawNetworkHandler;
 struct AppMessage;
-
 
 ///
 /// \brief The NetworkService class
@@ -144,6 +143,6 @@ class NetworkService : public NetworkServiceBase
     int m_num_clients_created;
 
     std::vector<APCClientHandler *> m_active_client_handlers;
+    RawNetworkHandler m_raw_network_handler;
 };
-
 }

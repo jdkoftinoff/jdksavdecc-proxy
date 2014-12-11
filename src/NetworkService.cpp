@@ -66,7 +66,10 @@ void NetworkService::Settings::addOptions(
 
 NetworkService::NetworkService( const NetworkService::Settings &settings,
                                 uv_loop_t *uv_loop )
-    : m_settings( settings ), m_uv_loop( uv_loop ), m_num_clients_created( 0 )
+    : m_settings( settings )
+    , m_uv_loop( uv_loop )
+    , m_num_clients_created( 0 )
+    , m_raw_network_handler( this, uv_loop )
 {
     // initialize the uv tcp server object
     uv_tcp_init( m_uv_loop, &m_tcp_server );

@@ -40,9 +40,7 @@ namespace JDKSAvdeccProxy
 APCClientHandler::APCClientHandler( NetworkService *owner,
                                     uv_tcp_t *uv_tcp,
                                     int client_id )
-    : m_owner( owner )
-    , m_uv_tcp( uv_tcp )
-    , m_client_id( client_id )
+    : m_owner( owner ), m_uv_tcp( uv_tcp ), m_client_id( client_id )
 {
 }
 
@@ -134,7 +132,6 @@ void APCClientHandler::onSentNopData( uv_write_t *req, int status )
     {
         // clear buf for next send
         req->data = 0;
-        m_outgoing_nop_buf.base = 0;
     }
 }
 
@@ -144,6 +141,11 @@ void APCClientHandler::onNopTimeout()
     std::cout << label_fmt( "nop timeout for client" ) << hex_fmt( m_client_id )
               << std::endl;
 
+    AppMessage msg;
+    msg.setNOP();
+    sendAppMessageToApc( msg );
+
+#if 0
     if ( m_nop_write_request.data == 0 && m_outgoing_nop_buf.base == 0 )
     {
         jdksavdecc_appdu appdu;
@@ -175,6 +177,7 @@ void APCClientHandler::onNopTimeout()
         std::cout << label_fmt( "unable to send NOP for client" )
                   << hex_fmt( m_client_id ) << std::endl;
     }
+#endif
 }
 
 void
@@ -182,13 +185,7 @@ void
 {
 }
 
-void APCClientHandler::onAvdeccLinkChange(bool link_up)
-{
+void APCClientHandler::onAvdeccLinkChange( bool link_up ) {}
 
-}
-
-void APCClientHandler::sendAppMessageToApc(const AppMessage &msg)
-{
-
-}
+void APCClientHandler::sendAppMessageToApc( const AppMessage &msg ) {}
 }

@@ -41,70 +41,38 @@ class RawNetworkHandler;
 
 struct AppMessage
 {
-    AppMessage()
-    {
-        m_data.reserve( JDKSAVDECC_APPDU_HEADER_LEN
-                        + JDKSAVDECC_APPDU_MAX_PAYLOAD_LENGTH );
-        jdksavdecc_appdu_init( &m_app_header );
-    }
+    AppMessage();
 
-    AppMessage( AppMessage const &other )
-        : m_app_header( other.m_app_header ), m_data( other.m_data )
-    {
-        m_app_header.payload = &m_data[JDKSAVDECC_APPDU_HEADER_LEN];
-    }
+    AppMessage( AppMessage const &other );
 
-    AppMessage const &operator=( AppMessage const &other )
-    {
-        m_app_header = other.m_app_header;
-        m_data = other.m_data;
-        m_app_header.payload = &m_data[JDKSAVDECC_APPDU_HEADER_LEN];
-        return *this;
-    }
+    AppMessage const &operator=( AppMessage const &other );
 
     void clear() { m_data.clear(); }
 
+    void setNOP();
+
+    void setEntityIdRequest( Eui48 const &apc_primary_mac,
+                             Eui64 const &requested_entity_id );
+
+    void setEntityIdResponse( Eui48 const &apc_primary_mac,
+                              Eui64 const &requested_entity_id );
+
+    void setLinkUp( Eui48 const &network_port_mac );
+
+    void setLinkDown( Eui48 const &network_port_mac );
+
+    void setAvdeccFromAps( Frame const &frame );
+
+    void setAvdeccFromApc( Frame const &frame );
+
+    void setVendor( Eui48 const &vendor_message_type,
+                    FixedBuffer const &payload );
+
     ssize_t parse( uint8_t octet,
                    std::function<void(jdksavdecc_appdu const &)> handle_msg_cb,
-                   std::function<void( ssize_t )> error_cb )
-    {
-        ssize_t r = 0;
-        m_data.push_back( octet );
+                   std::function<void( ssize_t )> error_cb );
 
-        if ( m_data.size() >= JDKSAVDECC_APPDU_HEADER_LEN
-                              + JDKSAVDECC_APPDU_MAX_PAYLOAD_LENGTH )
-        {
-            r = -1;
-        }
-        else
-        {
-            if ( m_data.size() >= JDKSAVDECC_APPDU_HEADER_LEN )
-            {
-                // validate header
-                jdksavdecc_appdu appmsg;
-
-                ssize_t r = jdksavdecc_appdu_read(
-                    &appmsg, &m_data[0], 0, m_data.size() );
-                if ( r > 0 )
-                {
-                    handle_msg_cb( appmsg );
-                    clear();
-                }
-                else if ( r < 0 )
-                {
-                    if ( error_cb )
-                    {
-                        error_cb( r );
-                    }
-                }
-            }
-        }
-
-        return r;
-    }
     jdksavdecc_appdu m_app_header;
     std::vector<uint8_t> m_data;
 };
-
-
 }

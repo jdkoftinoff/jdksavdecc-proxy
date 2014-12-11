@@ -42,7 +42,6 @@ class RawNetworkHandler;
 struct AppMessage;
 class NetworkService;
 
-
 ///
 /// \brief The APCClientHandler class
 ///
@@ -62,9 +61,7 @@ class APCClientHandler
     /// \param owner Owner of this client
     /// \param uv_tcp TCP socket to the incoming client
     ///
-    APCClientHandler( NetworkService *owner,
-                      uv_tcp_t *uv_tcp,
-                      int client_id );
+    APCClientHandler( NetworkService *owner, uv_tcp_t *uv_tcp, int client_id );
 
     ///
     /// \brief ~ClientHandler Destructor
@@ -130,7 +127,7 @@ class APCClientHandler
     ///
     /// \param link_up true if the network link is up, false otherwise
     ///
-    virtual void onAvdeccLinkChange(bool link_up);
+    virtual void onAvdeccLinkChange( bool link_up );
 
     ///
     /// \brief sendAppMessageToApc
@@ -142,14 +139,13 @@ class APCClientHandler
     virtual void sendAppMessageToApc( AppMessage const &msg );
 
   protected:
-
     /// The owner of the Client Connection
     NetworkService *m_owner;
 
     /// The socket which connects to the incoming AVDECC Proxy Client (APS)
     uv_tcp_t *m_uv_tcp;
 
-    std::array<uint8_t,8192> m_incoming_buf_storage;
+    std::array<uint8_t, 8192> m_incoming_buf_storage;
 
     /// The storage for incoming APP messages and parser
     AppMessage m_incoming_app_message;
@@ -160,6 +156,4 @@ class APCClientHandler
     /// Identifier for this client object
     int m_client_id;
 };
-
-
 }

@@ -41,18 +41,15 @@ class RawNetworkHandler;
 struct AppMessage;
 class NetworkService;
 
-
-
 ///
 /// \brief The RawClientHandler class
 ///
-class RawClientHandler
+class RawNetworkHandler
 {
   public:
-    RawClientHandler( NetworkService *owner,
-                      uv_handle_t *uv_handle );
+    RawNetworkHandler( NetworkService *owner, uv_loop_t *uv_loop );
 
-    virtual ~RawClientHandler();
+    virtual ~RawNetworkHandler();
 
     ///
     /// \brief startClient
@@ -81,8 +78,7 @@ class RawClientHandler
     /// \param nread number of bytes read
     /// \param buf pointer to uv_buf_t containing data
     ///
-    virtual void onClientData(
-            JDKSAvdeccMCU::Frame const &frame );
+    virtual void onClientData( JDKSAvdeccMCU::Frame const &frame );
 
     ///
     /// \brief onSentData
@@ -98,10 +94,9 @@ class RawClientHandler
     ///
     /// \param link_up true if the network link is up, false otherwise
     ///
-    virtual void onLinkChange(bool link_up);
+    virtual void onLinkChange( bool link_up );
 
   protected:
-
     /// The owner of the Client Connection
     NetworkService *m_owner;
 
@@ -112,7 +107,5 @@ class RawClientHandler
 
     /// The buffer space of outgoing messages
     std::deque<JDKSAvdeccMCU::FrameWithMTU> m_outgoing_app_messages;
-
 };
-
 }
