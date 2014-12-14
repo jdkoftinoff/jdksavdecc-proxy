@@ -47,7 +47,10 @@ struct AppMessage
 
     AppMessage const &operator=( AppMessage const &other );
 
-    void clear() { m_data.clear(); }
+    void clear()
+    {
+        setNOP();
+    }
 
     void setNOP();
 
@@ -67,6 +70,7 @@ struct AppMessage
 
     void setVendor( Eui48 const &vendor_message_type,
                     FixedBuffer const &payload );
+
 
     ssize_t parse( uint8_t octet,
                    std::function<void(jdksavdecc_appdu const &)> handle_msg_cb,

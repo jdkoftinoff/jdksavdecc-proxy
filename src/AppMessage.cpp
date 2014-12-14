@@ -58,31 +58,58 @@ const AppMessage &AppMessage::operator=( const AppMessage &other )
     return *this;
 }
 
-void AppMessage::setNOP() {}
+void AppMessage::setNOP()
+{
+    jdksavdecc_appdu_set_nop(&m_app_header);
+    m_data.resize(0);
+}
 
 void AppMessage::setEntityIdRequest(
     const JDKSAvdeccMCU::Eui48 &apc_primary_mac,
     const JDKSAvdeccMCU::Eui64 &requested_entity_id )
 {
+    m_data.resize(8);
+    jdksavdecc_appdu_set_entity_id_request(&m_app_header,apc_primary_mac,requested_entity_id);
 }
 
 void AppMessage::setEntityIdResponse(
     const JDKSAvdeccMCU::Eui48 &apc_primary_mac,
     const JDKSAvdeccMCU::Eui64 &requested_entity_id )
 {
+    m_data.resize(8);
+    jdksavdecc_appdu_set_entity_id_response(&m_app_header,apc_primary_mac,requested_entity_id);
 }
 
-void AppMessage::setLinkUp( const JDKSAvdeccMCU::Eui48 &network_port_mac ) {}
+void AppMessage::setLinkUp( const JDKSAvdeccMCU::Eui48 &network_port_mac )
+{
+    m_data.resize(0);
+    jdksavdecc_appdu_set_link_up(&m_app_header,network_port_mac);
+}
 
-void AppMessage::setLinkDown( const JDKSAvdeccMCU::Eui48 &network_port_mac ) {}
+void AppMessage::setLinkDown( const JDKSAvdeccMCU::Eui48 &network_port_mac )
+{
+    m_data.resize(0);
+    jdksavdecc_appdu_set_link_down(&m_app_header,network_port_mac);
+}
 
-void AppMessage::setAvdeccFromAps( const JDKSAvdeccMCU::Frame &frame ) {}
+void AppMessage::setAvdeccFromAps( const JDKSAvdeccMCU::Frame &frame )
+{
+    m_data.resize(frame.getPayloadLength());
+    jdksavdecc_appdu_set_avdecc_from_aps(&m_app_header,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
+}
 
-void AppMessage::setAvdeccFromApc( const JDKSAvdeccMCU::Frame &frame ) {}
+void AppMessage::setAvdeccFromApc( const JDKSAvdeccMCU::Frame &frame )
+{
+    m_data.resize(frame.getPayloadLength());
+    jdksavdecc_appdu_set_avdecc_from_apc(&m_app_header,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
+
+}
 
 void AppMessage::setVendor( const JDKSAvdeccMCU::Eui48 &vendor_message_type,
                             const JDKSAvdeccMCU::FixedBuffer &payload )
 {
+    m_data.resize(payload.getLength());
+    jdksavdecc_appdu_set_vendor(&m_app_header,vendor_message_type,payload.getLength(),payload.getBuf());
 }
 
 ssize_t AppMessage::parse(
