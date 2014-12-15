@@ -100,12 +100,16 @@ class RawNetworkHandler
     /// The owner of the Client Connection
     NetworkService *m_owner;
 
-    /// The socket which connects to the incoming AVDECC Proxy Client (APS)
+    /// The libuv loop
+    uv_loop_t *m_uv_loop;
+
+    /// The socket which conne
     uv_handle_t *m_uv_handle;
 
-    JDKSAvdeccMCU::FrameWithMTU m_incoming_frame;
+    /// The buffer space for incoming messages
+    std::deque<FrameWithMTU> m_incoming_avdecc_frames;
 
     /// The buffer space of outgoing messages
-    std::deque<JDKSAvdeccMCU::FrameWithMTU> m_outgoing_app_messages;
+    std::deque<FrameWithMTU> m_outgoing_app_messages;
 };
 }

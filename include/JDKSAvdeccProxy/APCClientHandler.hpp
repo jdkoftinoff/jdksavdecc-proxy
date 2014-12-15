@@ -145,12 +145,13 @@ class APCClientHandler
     /// The socket which connects to the incoming AVDECC Proxy Client (APS)
     uv_tcp_t *m_uv_tcp;
 
+    /// The incoming buffer space
     std::array<uint8_t, 8192> m_incoming_buf_storage;
 
-    /// The storage for incoming APP messages and parser
-    AppMessage m_incoming_app_message;
+    /// The storage for incoming APP messages from the APC
+    std::deque<AppMessage> m_incoming_app_message;
 
-    /// The buffer space of outgoing messages
+    /// The queue for outgoing APP messages to the APC
     std::deque<AppMessage> m_outgoing_app_messages;
 
     /// Identifier for this client object
