@@ -39,104 +39,94 @@ namespace JDKSAvdeccProxy
 
 AppMessage::AppMessage()
 {
-    m_data.reserve( JDKSAVDECC_APPDU_HEADER_LEN
-                    + JDKSAVDECC_APPDU_MAX_PAYLOAD_LENGTH );
-    jdksavdecc_appdu_init( &m_app_header );
+    jdksavdecc_fullappdu_init(&m_appdu);
+    jdksavdecc_appdu_set_nop(&m_appdu.base);
 }
 
 AppMessage::AppMessage( const AppMessage &other )
-    : m_app_header( other.m_app_header ), m_data( other.m_data )
+    : m_appdu( other.m_appdu )
 {
-    m_app_header.payload = &m_data[JDKSAVDECC_APPDU_HEADER_LEN];
+    m_appdu.base.payload = m_appdu.payload_buffer;
 }
 
 const AppMessage &AppMessage::operator=( const AppMessage &other )
 {
-    m_app_header = other.m_app_header;
-    m_data = other.m_data;
-    m_app_header.payload = &m_data[JDKSAVDECC_APPDU_HEADER_LEN];
+    m_appdu = other.m_appdu;
+    m_appdu.base.payload = m_appdu.payload_buffer;
     return *this;
 }
 
 void AppMessage::setNOP()
 {
-    jdksavdecc_appdu_set_nop(&m_app_header);
-    m_data.resize(0);
+    jdksavdecc_appdu_set_nop(&m_appdu.base);
 }
 
 void AppMessage::setEntityIdRequest(
     const JDKSAvdeccMCU::Eui48 &apc_primary_mac,
     const JDKSAvdeccMCU::Eui64 &requested_entity_id )
 {
-    m_data.resize(8);
-    jdksavdecc_appdu_set_entity_id_request(&m_app_header,apc_primary_mac,requested_entity_id);
+    jdksavdecc_appdu_set_entity_id_request(&m_appdu.base,apc_primary_mac,requested_entity_id);
 }
 
 void AppMessage::setEntityIdResponse(
     const JDKSAvdeccMCU::Eui48 &apc_primary_mac,
     const JDKSAvdeccMCU::Eui64 &requested_entity_id )
 {
-    m_data.resize(8);
-    jdksavdecc_appdu_set_entity_id_response(&m_app_header,apc_primary_mac,requested_entity_id);
+    jdksavdecc_appdu_set_entity_id_response(&m_appdu.base,apc_primary_mac,requested_entity_id);
 }
 
 void AppMessage::setLinkUp( const JDKSAvdeccMCU::Eui48 &network_port_mac )
 {
-    m_data.resize(0);
-    jdksavdecc_appdu_set_link_up(&m_app_header,network_port_mac);
+    jdksavdecc_appdu_set_link_up(&m_appdu.base,network_port_mac);
 }
 
 void AppMessage::setLinkDown( const JDKSAvdeccMCU::Eui48 &network_port_mac )
 {
-    m_data.resize(0);
-    jdksavdecc_appdu_set_link_down(&m_app_header,network_port_mac);
+    jdksavdecc_appdu_set_link_down(&m_appdu.base,network_port_mac);
 }
 
 void AppMessage::setAvdeccFromAps( const JDKSAvdeccMCU::Frame &frame )
 {
-    m_data.resize(frame.getPayloadLength());
-    jdksavdecc_appdu_set_avdecc_from_aps(&m_app_header,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
+    jdksavdecc_appdu_set_avdecc_from_aps(&m_appdu.base,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
 }
 
 void AppMessage::setAvdeccFromApc( const JDKSAvdeccMCU::Frame &frame )
 {
-    m_data.resize(frame.getPayloadLength());
-    jdksavdecc_appdu_set_avdecc_from_apc(&m_app_header,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
-
+    jdksavdecc_appdu_set_avdecc_from_apc(&m_appdu.base,frame.getSA(),frame.getPayloadLength(),frame.getPayload());
 }
 
 void AppMessage::setVendor( const JDKSAvdeccMCU::Eui48 &vendor_message_type,
                             const JDKSAvdeccMCU::FixedBuffer &payload )
 {
-    m_data.resize(payload.getLength());
-    jdksavdecc_appdu_set_vendor(&m_app_header,vendor_message_type,payload.getLength(),payload.getBuf());
+    jdksavdecc_appdu_set_vendor(&m_appdu.base,vendor_message_type,payload.getLength(),payload.getBuf());
 }
 
-ssize_t AppMessage::parse(
-    uint8_t octet,
-    std::function<void(const jdksavdecc_appdu &)> handle_msg_cb,
-    std::function<void( ssize_t )> error_cb )
+AppMessageParser::AppMessageParser()
+{
+}
+
+ssize_t AppMessageParser::parse(AppMessage *destination_msg, uint8_t octet, std::function<void (const AppMessage &)> handle_msg_cb, std::function<void (ssize_t)> error_cb)
 {
     ssize_t r = 0;
-    m_data.push_back( octet );
 
     if ( m_data.size() >= JDKSAVDECC_APPDU_HEADER_LEN
                           + JDKSAVDECC_APPDU_MAX_PAYLOAD_LENGTH )
     {
+        m_data.clear();
+        m_data.push_back( octet );
         r = -1;
     }
     else
     {
+        m_data.push_back( octet );
+
         if ( m_data.size() >= JDKSAVDECC_APPDU_HEADER_LEN )
         {
-            // validate header
-            jdksavdecc_appdu appmsg;
-
             ssize_t r = jdksavdecc_appdu_read(
-                &appmsg, &m_data[0], 0, m_data.size() );
+                &destination_msg->m_appdu.base, &m_data[0], 0, m_data.size() );
             if ( r > 0 )
             {
-                handle_msg_cb( appmsg );
+                handle_msg_cb( *destination_msg );
                 clear();
             }
             else if ( r < 0 )
@@ -151,4 +141,5 @@ ssize_t AppMessage::parse(
 
     return r;
 }
+
 }

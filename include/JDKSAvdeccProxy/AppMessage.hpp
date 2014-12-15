@@ -71,12 +71,24 @@ struct AppMessage
     void setVendor( Eui48 const &vendor_message_type,
                     FixedBuffer const &payload );
 
+    jdksavdecc_fullappdu m_appdu;
+};
 
-    ssize_t parse( uint8_t octet,
-                   std::function<void(jdksavdecc_appdu const &)> handle_msg_cb,
-                   std::function<void( ssize_t )> error_cb );
+struct AppMessageParser
+{
+    AppMessageParser();
 
-    jdksavdecc_appdu m_app_header;
+    void clear()
+    {
+        m_data.clear();
+    }
+
+    ssize_t parse( AppMessage *destination_msg,
+                   uint8_t octet,
+                   std::function<void(AppMessage const &)> handle_msg_cb,
+                   std::function<void(ssize_t)> error_cb );
+
     std::vector<uint8_t> m_data;
 };
+
 }
