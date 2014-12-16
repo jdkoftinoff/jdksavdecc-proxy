@@ -111,6 +111,19 @@ void APCClientHandler::onClientData( ssize_t nread, const uv_buf_t *buf )
 
         for ( ssize_t i = 0; i < nread; ++i )
         {
+            // Try parse each octet
+            AppMessage *msg
+                = m_incoming_app_parser.parse( (uint8_t)buf->base[i] );
+            if ( msg )
+            {
+                // Parsed a full message! process it
+                onApp( *msg );
+            }
+        }
+
+        // debug info
+        for ( ssize_t i = 0; i < nread; ++i )
+        {
             uint8_t v = (uint8_t)buf->base[i];
             std::cout << octet_fmt( v );
         }
@@ -187,5 +200,24 @@ void
 
 void APCClientHandler::onAvdeccLinkChange( bool link_up ) {}
 
-void APCClientHandler::sendAppMessageToApc( const JDKSAvdeccMCU::AppMessage &msg ) {}
+void APCClientHandler::sendAppMessageToApc(
+    const JDKSAvdeccMCU::AppMessage &msg )
+{
+}
+
+void APCClientHandler::onAppNop( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppEntityIdRequest( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppEntityIdResponse( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppLinkUp( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppLinkDown( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppAvdeccFromAps( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppAvdeccFromApc( const AppMessage &msg ) {}
+
+void APCClientHandler::onAppVendor( const AppMessage &msg ) {}
 }

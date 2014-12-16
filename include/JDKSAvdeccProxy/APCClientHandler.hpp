@@ -46,7 +46,7 @@ class NetworkService;
 /// Handles all interactions with an AVDECC Proxy Client via
 /// the incoming TCP connection
 ///
-class APCClientHandler
+class APCClientHandler : public AppMessageHandler
 {
   public:
     ///
@@ -136,6 +136,22 @@ class APCClientHandler
     ///
     virtual void sendAppMessageToApc( AppMessage const &msg );
 
+    virtual void onAppNop( AppMessage const &msg );
+
+    virtual void onAppEntityIdRequest( AppMessage const &msg );
+
+    virtual void onAppEntityIdResponse( AppMessage const &msg );
+
+    virtual void onAppLinkUp( AppMessage const &msg );
+
+    virtual void onAppLinkDown( AppMessage const &msg );
+
+    virtual void onAppAvdeccFromAps( AppMessage const &msg );
+
+    virtual void onAppAvdeccFromApc( AppMessage const &msg );
+
+    virtual void onAppVendor( AppMessage const &msg );
+
   protected:
     /// The owner of the Client Connection
     NetworkService *m_owner;
@@ -146,8 +162,8 @@ class APCClientHandler
     /// The incoming buffer space
     std::array<uint8_t, 8192> m_incoming_buf_storage;
 
-    /// The storage for incoming APP messages from the APC
-    std::deque<AppMessage> m_incoming_app_message;
+    /// The APP message parser to read messges from APC
+    AppMessageParser m_incoming_app_parser;
 
     /// The queue for outgoing APP messages to the APC
     std::deque<AppMessage> m_outgoing_app_messages;

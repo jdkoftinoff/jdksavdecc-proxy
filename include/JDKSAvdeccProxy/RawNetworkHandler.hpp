@@ -38,7 +38,6 @@ namespace JDKSAvdeccProxy
 
 class APCClientHandler;
 class RawNetworkHandler;
-struct AppMessage;
 class NetworkService;
 
 ///

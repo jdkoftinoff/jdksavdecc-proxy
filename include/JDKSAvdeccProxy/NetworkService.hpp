@@ -40,7 +40,6 @@ namespace JDKSAvdeccProxy
 
 class APCClientHandler;
 class RawNetworkHandler;
-struct AppMessage;
 
 ///
 /// \brief The NetworkService class
@@ -113,7 +112,7 @@ class NetworkService : public NetworkServiceBase
     /// interface
     /// \param frame The Frame object containing the PDU and header
     ///
-    virtual void sendAvdeccData( JDKSAvdeccMCU::Frame const &frame );
+    virtual void sendAvdeccData( Frame const &frame );
 
     ///
     /// \brief onNopTimeout callback for the 10 second NOP timeout
