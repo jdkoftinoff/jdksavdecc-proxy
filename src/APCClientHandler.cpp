@@ -141,7 +141,7 @@ void APCClientHandler::onNopTimeout()
     std::cout << label_fmt( "nop timeout for client" ) << hex_fmt( m_client_id )
               << std::endl;
 
-    AppMessage msg;
+    JDKSAvdeccMCU::AppMessage msg;
     msg.setNOP();
     sendAppMessageToApc( msg );
 
@@ -187,5 +187,5 @@ void
 
 void APCClientHandler::onAvdeccLinkChange( bool link_up ) {}
 
-void APCClientHandler::sendAppMessageToApc( const AppMessage &msg ) {}
+void APCClientHandler::sendAppMessageToApc( const JDKSAvdeccMCU::AppMessage &msg ) {}
 }

@@ -32,14 +32,12 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
-#include "AppMessage.hpp"
 
 namespace JDKSAvdeccProxy
 {
 
 class APCClientHandler;
 class RawNetworkHandler;
-struct AppMessage;
 class NetworkService;
 
 ///

@@ -32,7 +32,6 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
-#include "AppMessage.hpp"
 #include "APCClientHandler.hpp"
 #include "RawNetworkHandler.hpp"
 
