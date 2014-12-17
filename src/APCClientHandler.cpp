@@ -40,7 +40,8 @@ namespace JDKSAvdeccProxy
 APCClientHandler::APCClientHandler( NetworkService *owner,
                                     uv_tcp_t *uv_tcp,
                                     int client_id )
-    : m_owner( owner ), m_uv_tcp( uv_tcp ), m_client_id( client_id )
+    : m_owner( owner ), m_uv_tcp( uv_tcp ), m_incoming_app_parser(*this)
+, m_client_id( client_id )
 {
 }
 
@@ -112,12 +113,10 @@ void APCClientHandler::onClientData( ssize_t nread, const uv_buf_t *buf )
         for ( ssize_t i = 0; i < nread; ++i )
         {
             // Try parse each octet
-            AppMessage *msg
-                = m_incoming_app_parser.parse( (uint8_t)buf->base[i] );
-            if ( msg )
+            int e = m_incoming_app_parser.parse( (uint8_t)buf->base[i] );
+            if ( e<0 )
             {
-                // Parsed a full message! process it
-                onApp( *msg );
+                std::cout << "Error parsing" << std::endl;
             }
         }
 
