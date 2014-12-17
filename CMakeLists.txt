@@ -17,7 +17,14 @@ MinSizeRel."
        FORCE )
 endif()
 
-include_directories( "include" "http-parser" "Obbligato/include" "libuv/include" "jdksavdecc-mcu/include" "jdksavdecc-mcu/jdksavdecc-c/include" )
+include_directories(
+    "include"
+    "http-parser"
+    "Obbligato/include"
+    "libuv/include"
+    "jdksavdecc-mcu/include"
+    "jdksavdecc-mcu/jdksavdecc-c/include"
+)
 
 set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato http-parser)
 
