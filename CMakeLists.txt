@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 set(PROJECT jdksavdecc-proxy)
 project(${PROJECT} C CXX)
 
-option(CXX11 "C++11 mode" "ON")
+set(CXX11 "ON")
 
 add_subdirectory("libuv")
 add_subdirectory("jdksavdecc-mcu")
