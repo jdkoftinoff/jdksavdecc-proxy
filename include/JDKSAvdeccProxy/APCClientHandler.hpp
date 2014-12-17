@@ -137,6 +137,7 @@ class APCClientHandler : public AppMessageHandler
     virtual void sendAppMessageToApc( AppMessage const &msg );
 
   protected:
+
     virtual void onAppNop( AppMessage const &msg );
 
     virtual void onAppEntityIdRequest( AppMessage const &msg );
