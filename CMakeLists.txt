@@ -26,7 +26,7 @@ include_directories(
     "jdksavdecc-mcu/jdksavdecc-c/include"
 )
 
-set(LIBS ${LIBS} jdksavdecc-mcu uv Obbligato http-parser)
+set(LIBS ${LIBS} jdksavdecc-proxy Obbligato http-parser jdksavdecc-mcu uv)
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
