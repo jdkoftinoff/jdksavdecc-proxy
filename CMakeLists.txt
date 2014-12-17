@@ -28,6 +28,10 @@ include_directories(
 
 set(LIBS ${LIBS} jdksavdecc-proxy Obbligato http-parser jdksavdecc-mcu uv)
 
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+   set( LIBS ${LIBS} m rt )
+endif()
+
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
     set(LIBS ${LIBS} wpcap psapi)
