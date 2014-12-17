@@ -35,4 +35,5 @@
 
 namespace JDKSAvdeccProxy
 {
+const char *jdksavdecc_proxy = __FILE__;
 }
