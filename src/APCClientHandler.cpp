@@ -49,6 +49,14 @@ APCClientHandler::~APCClientHandler() { m_owner->removeAPCClient( this ); }
 
 void APCClientHandler::startClient()
 {
+    m_parsing_http = true;
+    m_http_url.clear();
+    m_http_status.clear();
+    m_http_header_field.clear();
+    m_http_header_value.clear();
+    m_http_headers.clear();
+
+    // Set up the libuv socket callbacks
     uv_read_start(
 
         // Start reading for this socket
@@ -69,6 +77,65 @@ void APCClientHandler::startClient()
             APCClientHandler *self = (APCClientHandler *)stream->data;
             self->onClientData( nread, buf );
         } );
+
+    // Set up the http_parser callbacks
+    http_parser_init(&m_http_parser,HTTP_REQUEST);
+    m_http_parser.data = this;
+    m_http_parser_settings.on_body =
+            []( http_parser *p, const char *buf, size_t len )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpBody( buf, len );
+            };
+
+    m_http_parser_settings.on_headers_complete =
+            []( http_parser *p )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpHeadersComplete();
+            };
+
+    m_http_parser_settings.on_header_field =
+            []( http_parser *p, const char *buf, size_t len )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpHeaderField( buf, len );
+            };
+
+    m_http_parser_settings.on_header_value =
+            []( http_parser *p, const char *buf, size_t len )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpHeaderValue( buf, len );
+            };
+
+    m_http_parser_settings.on_message_begin =
+            []( http_parser *p )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpMessageBegin();
+            };
+
+    m_http_parser_settings.on_message_complete =
+            []( http_parser *p )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpMessageComplete();
+            };
+
+    m_http_parser_settings.on_status =
+            []( http_parser *p, const char *buf, size_t len )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpStatus( buf, len );
+            };
+
+    m_http_parser_settings.on_url =
+            []( http_parser *p, const char *buf, size_t len )
+            {
+                APCClientHandler *self = (APCClientHandler *)p->data;
+                return self->onHttpUrl( buf, len );
+            };
 }
 
 void APCClientHandler::stopClient()
@@ -102,7 +169,40 @@ void APCClientHandler::onClientData( ssize_t nread, const uv_buf_t *buf )
         // If the incoming socket is disconnected then stop this client object
         stopClient();
     }
-    else
+    else if( m_parsing_http )
+    {
+        // incoming data was received, handle it
+        std::cout << label_fmt( "client" ) << hex_fmt( m_client_id )
+                  << std::endl;
+        std::cout << label_fmt( "received data length" ) << hex_fmt( nread )
+                  << std::endl;
+
+        // Parse the HTTP request
+        ssize_t parsed_count = http_parser_execute( &m_http_parser, &m_http_parser_settings, buf->base, nread );
+        if( parsed_count != nread )
+        {
+            // if we are still parsing the http request then make sure all data was consumed
+            if( m_parsing_http || parsed_count <= 0 )
+            {
+                std::cout << "Error parsing HTTP header";
+                stopClient();
+            }
+            else
+            {
+                // there was more data here than the http request header, so pass it to the APP parser
+                for ( ssize_t i = parsed_count; i < nread; ++i )
+                {
+                    // Try parse each octet
+                    int e = m_incoming_app_parser.parse( (uint8_t)buf->base[i] );
+                    if ( e<0 )
+                    {
+                        std::cout << "Error parsing" << std::endl;
+                    }
+                }
+            }
+        }
+    }
+    else if( !m_parsing_http )
     {
         // incoming data was received, handle it
         std::cout << label_fmt( "client" ) << hex_fmt( m_client_id )
@@ -149,62 +249,81 @@ void APCClientHandler::onSentNopData( uv_write_t *req, int status )
 
 void APCClientHandler::onNopTimeout()
 {
-    using namespace Obbligato::IOStream;
-    std::cout << label_fmt( "nop timeout for client" ) << hex_fmt( m_client_id )
-              << std::endl;
+    if( !m_parsing_http )
+    {
+        using namespace Obbligato::IOStream;
+        std::cout << label_fmt( "nop timeout for client" ) << hex_fmt( m_client_id )
+                  << std::endl;
 
-    JDKSAvdeccMCU::AppMessage msg;
-    msg.setNOP();
-    sendAppMessageToApc( msg );
+        JDKSAvdeccMCU::AppMessage msg;
+        msg.setNOP();
+        sendAppMessageToApc( msg );
 
 #if 0
-    if ( m_nop_write_request.data == 0 && m_outgoing_nop_buf.base == 0 )
-    {
-        jdksavdecc_appdu appdu;
-        jdksavdecc_appdu_init( &appdu );
-        jdksavdecc_appdu_set_nop( &appdu );
+        if ( m_nop_write_request.data == 0 && m_outgoing_nop_buf.base == 0 )
+        {
+            jdksavdecc_appdu appdu;
+            jdksavdecc_appdu_init( &appdu );
+            jdksavdecc_appdu_set_nop( &appdu );
 
-        jdksavdecc_appdu_write( &appdu,
-                                &m_outgoing_nop_buf_storage[0],
-                                0,
-                                m_outgoing_nop_buf_storage.size() );
+            jdksavdecc_appdu_write( &appdu,
+                                    &m_outgoing_nop_buf_storage[0],
+                    0,
+                    m_outgoing_nop_buf_storage.size() );
 
-        m_outgoing_nop_buf.base = &m_outgoing_nop_buf_storage[0];
-        m_outgoing_nop_buf.len = JDKSAVDECC_APPDU_HEADER_LEN
-                                 + appdu.payload_length;
+            m_outgoing_nop_buf.base = &m_outgoing_nop_buf_storage[0];
+            m_outgoing_nop_buf.len = JDKSAVDECC_APPDU_HEADER_LEN
+                    + appdu.payload_length;
 
-        m_nop_write_request.data = this;
-        uv_write( &m_nop_write_request,
-                  (uv_stream_t *)m_uv_tcp,
-                  &m_outgoing_nop_buf,
-                  1,
-                  []( uv_write_t *write_req, int status )
-                  {
-            APCClientHandler *self = (APCClientHandler *)write_req->data;
-            self->onSentNopData( write_req, status );
-        } );
-    }
-    else
-    {
-        std::cout << label_fmt( "unable to send NOP for client" )
-                  << hex_fmt( m_client_id ) << std::endl;
-    }
+            m_nop_write_request.data = this;
+            uv_write( &m_nop_write_request,
+                      (uv_stream_t *)m_uv_tcp,
+                      &m_outgoing_nop_buf,
+                      1,
+                      []( uv_write_t *write_req, int status )
+            {
+                APCClientHandler *self = (APCClientHandler *)write_req->data;
+                self->onSentNopData( write_req, status );
+            } );
+        }
+        else
+        {
+            std::cout << label_fmt( "unable to send NOP for client" )
+                      << hex_fmt( m_client_id ) << std::endl;
+        }
 #endif
+    }
 }
 
 void
     APCClientHandler::onAvdeccData( const JDKSAvdeccMCU::Frame &incoming_frame )
 {
+    if( !m_parsing_http )
+    {
+
+    }
 }
 
-void APCClientHandler::onAvdeccLinkChange( bool link_up ) {}
+void APCClientHandler::onAvdeccLinkChange( bool link_up )
+{
+    if( !m_parsing_http )
+    {
+
+    }
+}
 
 void APCClientHandler::sendAppMessageToApc(
     const JDKSAvdeccMCU::AppMessage &msg )
 {
+    if( !m_parsing_http )
+    {
+
+    }
 }
 
-void APCClientHandler::onAppNop( const AppMessage &msg ) {}
+void APCClientHandler::onAppNop( const AppMessage &msg )
+{
+}
 
 void APCClientHandler::onAppEntityIdRequest( const AppMessage &msg ) {}
 
@@ -219,4 +338,92 @@ void APCClientHandler::onAppAvdeccFromAps( const AppMessage &msg ) {}
 void APCClientHandler::onAppAvdeccFromApc( const AppMessage &msg ) {}
 
 void APCClientHandler::onAppVendor( const AppMessage &msg ) {}
+
+int APCClientHandler::onHttpMessageBegin()
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpUrl(const char *buf, size_t len)
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    m_http_url.append(buf,len);
+    std::cout << m_http_url << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpStatus(const char *buf, size_t len)
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    m_http_status.append(buf,len);
+    std::cout << m_http_status << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpHeaderField(const char *buf, size_t len)
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    if( m_http_header_value.length()>0 )
+    {
+        m_http_headers.push_back( std::make_pair( m_http_header_field, m_http_header_value ) );
+        m_http_header_field.clear();
+        m_http_header_value.clear();
+    }
+    m_http_header_field.append(buf,len);
+    std::cout << m_http_header_field << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpHeaderValue(const char *buf, size_t len)
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    m_http_header_value.append(buf,len);
+    std::cout << m_http_header_value << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpHeadersComplete()
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    if( m_http_header_value.length()>0 )
+    {
+        m_http_headers.push_back( std::make_pair( m_http_header_field, m_http_header_value ) );
+        m_http_header_value.clear();
+    }
+    for( auto i=m_http_headers.begin(); i!=m_http_headers.end(); ++i )
+    {
+        std::cout << i->first << " " << i->second << "\n";
+    }
+    return 0;
+}
+
+int APCClientHandler::onHttpBody(const char *buf, size_t len)
+{
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+    return 0;
+}
+
+int APCClientHandler::onHttpMessageComplete()
+{
+    int r=0;
+    std::cout << __PRETTY_FUNCTION__ << "\n";
+
+    if( m_http_parser.method == HTTP_CONNECT )
+    {
+        if( m_http_url == "/" )
+        {
+            m_parsing_http=0;
+        }
+    }
+
+    if( m_parsing_http )
+    {
+        r=-1;
+        stopClient();
+    }
+
+    return r;
+}
+
 }

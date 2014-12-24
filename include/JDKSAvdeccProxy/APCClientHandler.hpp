@@ -154,6 +154,34 @@ class APCClientHandler : public AppMessageHandler
 
     virtual void onAppVendor( AppMessage const &msg );
 
+
+  protected:
+
+    virtual int onHttpMessageBegin();
+
+    virtual int onHttpUrl( const char *buf, size_t len );
+
+    virtual int onHttpStatus( const char *buf, size_t len );
+
+    virtual int onHttpHeaderField( const char *buf, size_t len );
+
+    virtual int onHttpHeaderValue( const char *buf, size_t len );
+
+    virtual int onHttpHeadersComplete();
+
+    virtual int onHttpBody( const char *buf, size_t len );
+
+    virtual int onHttpMessageComplete();
+
+    http_parser m_http_parser;
+
+    bool m_parsing_http;
+    std::string m_http_url;
+    std::string m_http_status;
+    std::string m_http_header_field;
+    std::string m_http_header_value;
+    std::vector< std::pair< std::string, std::string > > m_http_headers;
+
   protected:
     /// The owner of the Client Connection
     NetworkService *m_owner;
@@ -169,6 +197,9 @@ class APCClientHandler : public AppMessageHandler
 
     /// The queue for outgoing APP messages to the APC
     std::deque<AppMessage> m_outgoing_app_messages;
+
+    http_parser_settings m_http_parser_settings;
+
 
     /// Identifier for this client object
     int m_client_id;
