@@ -155,7 +155,7 @@ void NetworkService::stopService()
           i != m_active_client_handlers.end();
           ++i )
     {
-        ( *i )->stopClient();
+        ( *i )->stop();
         delete *i;
     }
 }
@@ -172,7 +172,7 @@ void NetworkService::onNewConnection()
             = new APCClientHandler( this, client, m_num_clients_created++ );
         client->data = (void *)client_handler;
         m_active_client_handlers.push_back( client_handler );
-        client_handler->startClient();
+        client_handler->start();
     }
     else
     {

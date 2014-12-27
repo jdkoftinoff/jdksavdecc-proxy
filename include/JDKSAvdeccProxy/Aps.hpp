@@ -30,8 +30,187 @@
 */
 #pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
+#include "World.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class AosAvdeccHandler;
+class ApsAvdeccEvents;
+
+class ApsClientHandler;
+class ApsClientEvents;
+
+class ApsconenctionHandler;
+class ApsConnectionEvents;
+
+class ApsAvdeccHandler
+{
+public:
+//    ApsAvdeccHandler( unique_ptr<ApsAvdeccEvents> events ) : m_events( events ) {}
+//    virtual ~ApsAvdeccHandler() {}
+
+    ///
+    /// \brief start
+    /// Start the network service
+    ///
+    virtual void start();
+
+    ///
+    /// \brief stop
+    /// Stop the network service
+    ///
+    virtual void stop();
+
+    ///
+    /// \brief onAvdeccFrame Avdecc data is received
+    /// This method forwards the avdecc data to all ClientHandler objects
+    ///
+    virtual void onAvdeccFrame( Frame const &frame ) = 0;
+
+    ///
+    /// \brief sendAvdeccData Avdecc data needs to be sent to the Avdecc
+    /// interface
+    /// \param frame The Frame object containing the PDU and header
+    ///
+    virtual void sendAvdeccFrame( Frame const &frame ) = 0;
+
+protected:
+
+    unique_ptr<ApsAvdeccEvents> m_events;
+};
+
+class ApsAvdeccEvents
+{
+public:
+//    ApsConnectionEvents() {}
+//    virtual ~ApsConnectionEvents() {}
+
+    ///
+    /// \brief start
+    /// Start the network service
+    ///
+    virtual void start() = 0;
+
+    ///
+    /// \brief stop
+    /// Stop the network service
+    ///
+    virtual void stop() = 0;
+
+    ///
+    /// \brief onAvdeccFrame Avdecc data is received
+    /// This method forwards the avdecc data to all ClientHandler objects
+    ///
+    virtual void onAvdeccFrame( Frame const &frame ) = 0;
+
+    ///
+    /// \brief sendAvdeccData Avdecc data needs to be sent to the Avdecc
+    /// interface
+    /// \param frame The Frame object containing the PDU and header
+    ///
+    virtual void sendAvdeccFrame( Frame const &frame ) = 0;
+
+    ///
+    /// \brief onAvdeccLinkChange
+    /// callback when the AVDECC network link status changes
+    ///
+    /// \param link_up true if the network link is up, false otherwise
+    ///
+    virtual void onAvdeccLinkChange( bool link_up ) = 0;
+};
+
+class ApsClientEvents
+{
+public:
+    ApsClientEvents() {}
+    virtual ~ApsClientEvents() {}
+
+    ///
+    /// \brief start
+    /// Start the network service
+    ///
+    virtual void start() = 0;
+
+    ///
+    /// \brief stop
+    /// Stop the network service
+    ///
+    virtual void stop() = 0;
+
+    virtual int onHttpMessageComplete(
+            string const &method,
+            string const &url,
+            vector< pair< string, string > > const &headers
+            ) = 0;
+
+    ///
+    /// \brief onAvdeccFrame Avdecc data is received
+    /// This method forwards the avdecc data to all ClientHandler objects
+    ///
+    virtual void onAvdeccFrame( Frame const &frame ) = 0;
+
+};
+
+class ApsConnectionEvents
+{
+public:
+    ApsConnectionEvents() {}
+    virtual ~ApsConnectionEvents() {}
+
+    ///
+    /// \brief start
+    /// Start the network service
+    ///
+    virtual void start() = 0;
+
+    ///
+    /// \brief stop
+    /// Stop the network service
+    ///
+    virtual void stop() = 0;
+
+    ///
+    /// \brief onNewConnection A new TCP connection is accepted
+    ///
+    virtual void onNewConnection() = 0;
+
+    ///
+    /// \brief onAvdeccFrame Avdecc data is received
+    /// This method forwards the avdecc data to all ClientHandler objects
+    ///
+    virtual void onAvdeccFrame( Frame const &frame ) = 0;
+
+    ///
+    /// \brief sendAvdeccData Avdecc data needs to be sent to the Avdecc
+    /// interface
+    /// \param frame The Frame object containing the PDU and header
+    ///
+    virtual void sendAvdeccFrame( Frame const &frame ) = 0;
+
+    ///
+    /// \brief onNopTimeout callback for the 10 second NOP timeout
+    ///
+    virtual void onNopTimeout() = 0;
+
+    ///
+    /// \brief onAvdeccLinkChange
+    /// callback when the AVDECC network link status changes
+    ///
+    /// \param link_up true if the network link is up, false otherwise
+    ///
+    virtual void onAvdeccLinkChange( bool link_up ) = 0;
+
+    ///
+    /// \brief sendAppMessageToApc
+    ///
+    /// Put the AppMessage into the outgoing queues for all APCs
+    ///
+    /// \param msg
+    ///
+    virtual void sendAppMessageToApc( AppMessage const &msg ) = 0;
+
+};
+
+
 }

@@ -69,16 +69,16 @@ class APCClientHandler : public AppMessageHandler
     virtual ~APCClientHandler();
 
     ///
-    /// \brief startClient
+    /// \brief start
     /// Do any special initializations for the client handler
     ///
-    virtual void startClient();
+    virtual void start();
 
     ///
-    /// \brief stopClient
+    /// \brief stop
     ///  stop any pending requests for the client handler
     ///
-    virtual void stopClient();
+    virtual void stop();
 
     ///
     /// \brief readAlloc

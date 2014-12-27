@@ -47,7 +47,7 @@ APCClientHandler::APCClientHandler( NetworkService *owner,
 
 APCClientHandler::~APCClientHandler() { m_owner->removeAPCClient( this ); }
 
-void APCClientHandler::startClient()
+void APCClientHandler::start()
 {
     m_parsing_http = true;
     m_http_url.clear();
@@ -138,7 +138,7 @@ void APCClientHandler::startClient()
             };
 }
 
-void APCClientHandler::stopClient()
+void APCClientHandler::stop()
 {
     // stop the reading of the socket
     uv_read_stop( (uv_stream_t *)m_uv_tcp );
@@ -167,7 +167,7 @@ void APCClientHandler::onClientData( ssize_t nread, const uv_buf_t *buf )
     if ( nread <= 0 )
     {
         // If the incoming socket is disconnected then stop this client object
-        stopClient();
+        stop();
     }
     else if( m_parsing_http )
     {
@@ -185,7 +185,7 @@ void APCClientHandler::onClientData( ssize_t nread, const uv_buf_t *buf )
             if( m_parsing_http || parsed_count <= 0 )
             {
                 std::cout << "Error parsing HTTP header";
-                stopClient();
+                stop();
             }
             else
             {
@@ -238,7 +238,7 @@ void APCClientHandler::onSentNopData( uv_write_t *req, int status )
         using namespace Obbligato::IOStream;
         std::cout << label_fmt( "unable to send NOP for client" )
                   << hex_fmt( m_client_id ) << std::endl;
-        stopClient();
+        stop();
     }
     else
     {
@@ -420,7 +420,7 @@ int APCClientHandler::onHttpMessageComplete()
     if( m_parsing_http )
     {
         r=-1;
-        stopClient();
+        stop();
     }
 
     return r;

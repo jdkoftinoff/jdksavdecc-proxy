@@ -40,4 +40,8 @@
 namespace JDKSAvdeccProxy
 {
 using namespace JDKSAvdeccMCU;
+using std::string;
+using std::vector;
+using std::pair;
+using std::unique_ptr;
 }
