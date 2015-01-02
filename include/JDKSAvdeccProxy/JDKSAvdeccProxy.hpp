@@ -31,7 +31,7 @@
 #pragma once
 
 #include "JDKSAvdeccMCU_World.hpp"
-#include "Aps.hpp"
+#include "ApsClient.hpp"
 #include "NetworkServiceBase.hpp"
 #include "NetworkService.hpp"
 

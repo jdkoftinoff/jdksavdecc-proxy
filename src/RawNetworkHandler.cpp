@@ -31,7 +31,7 @@
 
 #include "JDKSAvdeccProxy/World.hpp"
 #include "Obbligato/Config.hpp"
-#include "JDKSAvdeccProxy/APCClientHandler.hpp"
+#include "JDKSAvdeccProxy/ApsClient.hpp"
 #include "JDKSAvdeccProxy/NetworkService.hpp"
 
 namespace JDKSAvdeccProxy

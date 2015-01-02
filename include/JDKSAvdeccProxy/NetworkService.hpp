@@ -32,13 +32,13 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
-#include "APCClientHandler.hpp"
+#include "ApsClient.hpp"
 #include "RawNetworkHandler.hpp"
 
 namespace JDKSAvdeccProxy
 {
 
-class APCClientHandler;
+class ApsClient;
 class RawNetworkHandler;
 
 ///
@@ -60,6 +60,7 @@ class NetworkService : public NetworkServiceBase
         int32_t m_priority;
         bool m_advertise_mdns;
         std::string m_avdecc_interface;
+        int m_max_clients;
 
         ///
         /// \brief addOptions Initialize configuration options parser
@@ -82,21 +83,24 @@ class NetworkService : public NetworkServiceBase
     virtual ~NetworkService() {}
 
     ///
-    /// \brief startService
+    /// \brief start
     /// Start the network service
     ///
-    virtual void startService();
+    virtual void start();
 
     ///
-    /// \brief stopService
+    /// \brief stop
     /// Stop the network service
     ///
-    virtual void stopService();
+    virtual void stop();
 
     ///
     /// \brief onNewConnection A new TCP connection is accepted
     ///
+
     virtual void onNewConnection();
+
+    virtual void removeApsClient( ApsClient *client );
 
     ///
     /// \brief onAvdeccData Avdecc data is received
@@ -115,17 +119,14 @@ class NetworkService : public NetworkServiceBase
     virtual void sendAvdeccData( Frame const &frame );
 
     ///
-    /// \brief onNopTimeout callback for the 10 second NOP timeout
+    /// \brief onTick callback
     ///
-    virtual void onNopTimeout();
+    /// Poll network link status and
+    /// run state machines
+    ///
+    virtual void onTick();
 
-    ///
-    /// \brief removeAPCClient Remove the specified client from the active
-    /// clients
-    /// list
-    /// \param client TCPClientHandler pointer to remove
-    ///
-    virtual void removeAPCClient( APCClientHandler *client );
+    virtual void sendAvdeccToL2( ApsClient *from, Frame const &frame );
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
@@ -137,10 +138,14 @@ class NetworkService : public NetworkServiceBase
     Settings const &m_settings;
     uv_loop_t *m_uv_loop;
     uv_tcp_t m_tcp_server;
-    uv_timer_t m_nop_timer;
+    uv_timer_t m_tick_timer;
     int m_num_clients_created;
 
-    std::vector<APCClientHandler *> m_active_client_handlers;
+    uint16_t m_assigned_id_count;
+    ApsClient::active_connections_type m_active_ids;
+
+    std::vector<std::shared_ptr<ApsClient>> m_active_client_handlers;
+    std::vector<std::shared_ptr<ApsClient>> m_available_client_handlers;
     RawNetworkHandler m_raw_network_handler;
 };
 }

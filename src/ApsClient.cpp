@@ -35,5 +35,22 @@
 
 namespace JDKSAvdeccProxy
 {
-const char *jdksavdecc_proxy_aps = __FILE__;
+
+void ApsClient::sendAvdeccToL2( Frame const &frame )
+{
+    ApsStateMachine::sendAvdeccToL2( frame );
+    // TODO:
+}
+
+void ApsClient::closeTcpServer()
+{
+    ApsStateMachine::closeTcpServer();
+    // TODO:
+}
+
+void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
+{
+    ApsStateMachine::sendTcpData( data, len );
+    // TODO:
+}
 }

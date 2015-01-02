@@ -58,16 +58,16 @@ class NetworkServiceBase
     virtual ~NetworkServiceBase() {}
 
     ///
-    /// \brief startService
+    /// \brief start
     /// Start the network service
     ///
-    virtual void startService() = 0;
+    virtual void start() = 0;
 
     ///
-    /// \brief stopService
+    /// \brief stop
     /// Stop the network service
     ///
-    virtual void stopService() = 0;
+    virtual void stop() = 0;
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service

@@ -61,7 +61,11 @@ void NetworkService::Settings::addOptions(
         .add( "avdecc_interface",
               "en0",
               "Name of the Network Interface to use for AVDECC messages",
-              m_avdecc_interface );
+              m_avdecc_interface )
+        .add( "max_clients",
+              "16",
+              "Maximum number of simultaneous clients",
+              m_max_clients );
 }
 
 NetworkService::NetworkService( const NetworkService::Settings &settings,
@@ -69,14 +73,22 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     : m_settings( settings )
     , m_uv_loop( uv_loop )
     , m_num_clients_created( 0 )
+    , m_assigned_id_count( 0 )
+    , m_active_ids()
     , m_raw_network_handler( this, uv_loop )
 {
+    for ( int i = 0; i < settings.m_max_clients; ++i )
+    {
+        m_available_client_handlers.push_back( std::make_shared<ApsClient>(
+            this, m_assigned_id_count, m_active_ids, "/" ) );
+    }
+
     // initialize the uv tcp server object
     uv_tcp_init( m_uv_loop, &m_tcp_server );
     m_tcp_server.data = this;
 }
 
-void NetworkService::startService()
+void NetworkService::start()
 {
     int r = 0;
 
@@ -133,30 +145,30 @@ void NetworkService::startService()
         throw std::runtime_error( s.str() );
     }
 
-    // create a single 10 second timer for NOP usages
-    uv_timer_init( m_uv_loop, &m_nop_timer );
-    m_nop_timer.data = this;
-    uv_timer_start( &m_nop_timer,
+    // create a single 250 ms timer for updating state machines
+    uv_timer_init( m_uv_loop, &m_tick_timer );
+    m_tick_timer.data = this;
+    uv_timer_start( &m_tick_timer,
                     []( uv_timer_t *timer )
                     {
                         NetworkService *self = (NetworkService *)timer->data;
-                        self->onNopTimeout();
+                        self->onTick();
                     },
                     0,
-                    10 * 1000 );
+                    250 );
 }
 
-void NetworkService::stopService()
+void NetworkService::stop()
 {
-    uv_timer_stop( &m_nop_timer );
+    uv_timer_stop( &m_tick_timer );
     uv_close( (uv_handle_t *)&m_tcp_server, NULL );
 
-    for ( auto i = m_active_client_handlers.begin();
-          i != m_active_client_handlers.end();
-          ++i )
+    while ( m_active_client_handlers.size() > 0 )
     {
-        ( *i )->stop();
-        delete *i;
+        std::shared_ptr<ApsClient> aps = m_active_client_handlers.back();
+        aps->stop();
+        m_available_client_handlers.push_back( aps );
+        m_active_client_handlers.pop_back();
     }
 }
 
@@ -164,15 +176,24 @@ void NetworkService::onNewConnection()
 {
     uv_tcp_t *client = (uv_tcp_t *)malloc( sizeof( uv_tcp_t ) );
     uv_tcp_init( m_uv_loop, client );
-    client->data = this;
 
     if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
     {
-        APCClientHandler *client_handler
-            = new APCClientHandler( this, client, m_num_clients_created++ );
-        client->data = (void *)client_handler;
-        m_active_client_handlers.push_back( client_handler );
-        client_handler->start();
+        if ( m_available_client_handlers.size() > 0 )
+        {
+            auto aps = m_available_client_handlers.back();
+            m_available_client_handlers.pop_back();
+            // TODO:
+            // aps->setLinkMac( m_raw_network_handler.getMac() );
+            aps->setup();
+            client->data = (void *)aps.get();
+            m_active_client_handlers.push_back( aps );
+            aps->run();
+        }
+        else
+        {
+            uv_close( (uv_handle_t *)client, NULL );
+        }
     }
     else
     {
@@ -189,22 +210,40 @@ void NetworkService::onAvdeccData( ssize_t nread,
 
 void NetworkService::sendAvdeccData( const JDKSAvdeccMCU::Frame &frame ) {}
 
-void NetworkService::onNopTimeout()
+void NetworkService::onTick()
+{
+    // TODO: poll link status and notify ApsClients any link status change
+
+    // Notify all ApsClients about time
+    jdksavdecc_timestamp_in_microseconds ts
+        = get_current_time_in_microseconds();
+    uint32_t time_in_seconds = ts / 1000000;
+    for ( auto i = m_active_client_handlers.begin();
+          i != m_active_client_handlers.end();
+          ++i )
+    {
+        ( *i )->onTimeTick( time_in_seconds );
+    }
+}
+
+void NetworkService::sendAvdeccToL2( ApsClient *from, Frame const &frame )
+{
+    // TODO: send the avdecc message to the L2 network
+}
+
+void NetworkService::removeApsClient( ApsClient *client )
 {
     for ( auto i = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
     {
-        ( *i )->onNopTimeout();
+        if ( i->get() == client )
+        {
+            m_available_client_handlers.push_back( *i );
+            m_active_client_handlers.erase( i );
+            break;
+        }
     }
-}
-
-void NetworkService::removeAPCClient( APCClientHandler *client )
-{
-    m_active_client_handlers.erase(
-        std::remove( m_active_client_handlers.begin(),
-                     m_active_client_handlers.end(),
-                     client ) );
 }
 
 uv_loop_t *NetworkService::getLoop() { return m_uv_loop; }
