@@ -31,6 +31,7 @@
 #pragma once
 
 #include "World.hpp"
+#include "NetworkServiceBase.hpp"
 
 namespace JDKSAvdeccProxy
 {
@@ -42,17 +43,20 @@ class ApsClient : public ApsStateMachine
     ApsClient( NetworkService *owner,
                uint16_t &assigned_id_count,
                active_connections_type &active_connections,
-               std::string const &path = "/" )
+               std::string const &path,
+               HttpServerFiles const &http_server_files )
         : ApsStateMachine( &m_my_variables,
                            &m_my_actions,
                            &m_my_events,
                            &m_my_states,
                            assigned_id_count,
                            active_connections )
-        , m_my_events( &m_http_server_parser, path )
+        , m_my_events( &m_http_server_parser, path, http_server_files )
         , m_owner( owner )
         , m_http_server_parser( &m_http_server_request, &m_my_events )
+        , m_http_server_files( http_server_files )
     {
+        m_my_events.setApsClient( this );
     }
 
     virtual void start() {}
@@ -67,15 +71,49 @@ class ApsClient : public ApsStateMachine
 
     virtual void sendTcpData( uint8_t const *data, ssize_t len );
 
+    class StateEventsWithWebServing : public StateEvents
+    {
+      public:
+        StateEventsWithWebServing( HttpServerParserSimple *parser,
+                                   std::string connect_path,
+                                   HttpServerFiles const &builtin_files );
+
+        void setApsClient( ApsClient *aps_client )
+        {
+            m_aps_client = aps_client;
+        }
+
+        virtual bool onIncomingHttpGetRequest( HttpRequest const &request );
+        virtual bool onIncomingHttpHeadRequest( HttpRequest const &request );
+        virtual bool onIncomingHttpPostRequest( HttpRequest const &request );
+
+        virtual bool onIncomingHttpCgiGetRequest( HttpRequest const &request );
+        virtual bool onIncomingHttpCgiPostRequest( HttpRequest const &request );
+        virtual bool onIncomingHttpFileGetRequest( HttpRequest const &request );
+        virtual bool
+            onIncomingHttpFileHeadRequest( HttpRequest const &request );
+
+        virtual std::vector<uint8_t> const *
+            getHttpFileHeaders( HttpRequest const &request,
+                                HttpResponse *response );
+
+      protected:
+        ApsClient *m_aps_client;
+        HttpServerFiles const &m_builtin_files;
+    };
+
   protected:
+    virtual void sendHttpResponse( HttpResponse const &response );
+
     StateVariables m_my_variables;
     StateActions m_my_actions;
     States m_my_states;
-    StateEvents m_my_events;
+    StateEventsWithWebServing m_my_events;
 
     NetworkService *m_owner;
 
     HttpServerParserSimple m_http_server_parser;
     HttpRequest m_http_server_request;
+    HttpServerFiles const &m_http_server_files;
 };
 }

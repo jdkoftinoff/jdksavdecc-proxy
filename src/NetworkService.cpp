@@ -69,6 +69,7 @@ void NetworkService::Settings::addOptions(
 }
 
 NetworkService::NetworkService( const NetworkService::Settings &settings,
+                                HttpServerFiles const &server_files,
                                 uv_loop_t *uv_loop )
     : m_settings( settings )
     , m_uv_loop( uv_loop )
@@ -80,7 +81,7 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     for ( int i = 0; i < settings.m_max_clients; ++i )
     {
         m_available_client_handlers.push_back( std::make_shared<ApsClient>(
-            this, m_assigned_id_count, m_active_ids, "/" ) );
+            this, m_assigned_id_count, m_active_ids, "/", server_files ) );
     }
 
     // initialize the uv tcp server object

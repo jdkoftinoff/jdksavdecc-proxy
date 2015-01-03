@@ -74,7 +74,9 @@ class NetworkService : public NetworkServiceBase
     /// \brief NetworkService constructor
     /// \param settings reference to the initialized Settings for the service
     ///
-    explicit NetworkService( Settings const &settings, uv_loop_t *uv_loop );
+    explicit NetworkService( Settings const &settings,
+                             HttpServerFiles const &server_files,
+                             uv_loop_t *uv_loop );
 
     ///
     /// \brief ~NetworkService

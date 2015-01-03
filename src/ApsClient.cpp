@@ -52,5 +52,122 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
 {
     ApsStateMachine::sendTcpData( data, len );
     // TODO:
+    uv_write_t write_req;
+
+    // uv_write(&write_req,this->m_)
+    m_owner->getLoop();
+}
+
+void ApsClient::sendHttpResponse( const HttpResponse &response )
+{
+    // TODO:
+}
+
+ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
+    HttpServerParserSimple *parser,
+    std::string connect_path,
+    const HttpServerFiles &builtin_files )
+    : StateEvents( parser, connect_path ), m_builtin_files( builtin_files )
+{
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
+    HttpRequest const &request )
+{
+    bool r = false;
+    if ( onIncomingHttpFileGetRequest( request ) )
+    {
+        r = true;
+    }
+    else if ( onIncomingHttpCgiGetRequest( request ) )
+    {
+        r = true;
+    }
+    return r;
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpHeadRequest(
+    HttpRequest const &request )
+{
+    return onIncomingHttpFileHeadRequest( request );
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpPostRequest(
+    HttpRequest const &request )
+{
+    return onIncomingHttpCgiPostRequest( request );
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpCgiGetRequest(
+    HttpRequest const &request )
+{
+    return false;
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpCgiPostRequest(
+    HttpRequest const &request )
+{
+    return false;
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileGetRequest(
+    HttpRequest const &request )
+{
+    bool r = false;
+
+    HttpResponse response;
+
+    std::vector<uint8_t> const *content;
+    content = getHttpFileHeaders( request, &response );
+
+    if ( content )
+    {
+        response.m_content = *content;
+        m_aps_client->sendHttpResponse( response );
+        r = true;
+    }
+    return r;
+}
+
+bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileHeadRequest(
+    const HttpRequest &request )
+{
+    bool r = false;
+
+    HttpResponse response;
+
+    if ( getHttpFileHeaders( request, &response ) )
+    {
+        m_aps_client->sendHttpResponse( response );
+        r = true;
+    }
+    return r;
+}
+
+std::vector<uint8_t> const *
+    ApsClient::StateEventsWithWebServing::getHttpFileHeaders(
+        const HttpRequest &request, HttpResponse *response )
+{
+    std::vector<uint8_t> const *r = 0;
+
+    HttpServerFiles::const_iterator item
+        = m_builtin_files.find( request.m_path );
+    if ( item != m_builtin_files.end() )
+    {
+        std::ostringstream content_length;
+        content_length << std::dec << item->second.m_content.size();
+
+        response->m_headers.push_back( "Connection: Close" );
+        response->m_headers.push_back( "Content-Type: "
+                                       + item->second.m_mime_type );
+        response->m_headers.push_back( "Content-Length: "
+                                       + content_length.str() );
+        response->m_version = "HTTP/1.1";
+        response->m_status_code = "200";
+        response->m_reason_phrase = "OK";
+        r = &item->second.m_content;
+    }
+
+    return r;
 }
 }
