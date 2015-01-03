@@ -99,7 +99,6 @@ class NetworkService : public NetworkServiceBase
     ///
     /// \brief onNewConnection A new TCP connection is accepted
     ///
-
     virtual void onNewConnection();
 
     virtual void removeApsClient( ApsClient *client );

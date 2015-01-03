@@ -51,8 +51,8 @@ void ApsClient::closeTcpServer()
 void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
 {
     ApsStateMachine::sendTcpData( data, len );
-    // TODO:
-    uv_write_t write_req;
+
+    uv_write_t *write_req = new uv_write_t;
 
     // uv_write(&write_req,this->m_)
     m_owner->getLoop();

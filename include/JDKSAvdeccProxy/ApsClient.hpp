@@ -59,6 +59,8 @@ class ApsClient : public ApsStateMachine
         m_my_events.setApsClient( this );
     }
 
+    void setTcp( uv_tcp_t *tcp ) { m_tcp = tcp; }
+
     virtual void start() {}
 
     virtual void stop() {}
@@ -115,5 +117,6 @@ class ApsClient : public ApsStateMachine
     HttpServerParserSimple m_http_server_parser;
     HttpRequest m_http_server_request;
     HttpServerFiles const &m_http_server_files;
+    uv_tcp_t *m_tcp;
 };
 }

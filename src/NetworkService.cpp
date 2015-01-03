@@ -188,6 +188,7 @@ void NetworkService::onNewConnection()
             // aps->setLinkMac( m_raw_network_handler.getMac() );
             aps->setup();
             client->data = (void *)aps.get();
+            aps->setTcp( client );
             m_active_client_handlers.push_back( aps );
             aps->run();
         }
