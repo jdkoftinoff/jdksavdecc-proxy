@@ -31,19 +31,72 @@
 
 #include "JDKSAvdeccProxy/World.hpp"
 
-#include "JDKSAvdeccProxy/JDKSAvdeccProxy.hpp"
+#include "JDKSAvdeccProxy/ServiceController.hpp"
 
-
-int main(int argc, const char **argv )
+namespace JDKSAvdeccProxy
 {
-    Obbligato::Config::OptionGroups option_groups;
-    Obbligato::Logger::addOptions(option_groups,false);
-    JDKSAvdeccProxy::ServiceController controller(option_groups);
 
+ServiceController::ServiceController(
+    Obbligato::Config::OptionGroups &option_groups )
+    : m_option_groups( option_groups )
+{
+    m_proxy_settings.addOptions( option_groups, "avdecc_proxy" );
 
-    if( controller.init(argc,argv) )
+    m_loop = uv_default_loop();
+}
+
+ServiceController::~ServiceController() {}
+
+bool ServiceController::init( int argc, const char **argv )
+{
+    bool r = true;
+
+    m_proxy_settings.addOptions( m_option_groups, "avdecc_proxy" );
+
+    if ( !m_option_groups.parse(
+             argv + 1, "JDKSAvdeccProxyServer", "Version 0.3", std::cout ) )
     {
-        controller.run();
+        throw std::runtime_error( "unable to parse settings" );
     }
 
+    setupServerFiles();
+
+    return r;
+}
+
+bool ServiceController::run()
+{
+    bool r = true;
+
+    try
+    {
+        NetworkService service( m_proxy_settings, m_server_files, m_loop );
+        service.start();
+
+        uv_run( m_loop, UV_RUN_DEFAULT );
+
+        service.stop();
+    }
+    catch ( std::runtime_error const &e )
+    {
+        ob_log_error( "exception: runtime_error caught: ", e.what() );
+    }
+    catch ( std::logic_error const &e )
+    {
+        ob_log_error( "exception: logic_error caught: ", e.what() );
+    }
+    catch ( std::exception const &e )
+    {
+        ob_log_error( "exception caught: ", e.what() );
+    }
+
+    return r;
+}
+
+void ServiceController::setupServerFiles()
+{
+    m_server_files["/"] = JDKSAvdeccProxy::HttpServerBlob(
+        "text/html",
+        "<html><head><title>Index</title></head><body><h1>Hello</h1></body>" );
+}
 }

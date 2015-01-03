@@ -33,60 +33,17 @@
 
 #include "JDKSAvdeccProxy/JDKSAvdeccProxy.hpp"
 
-using namespace JDKSAvdeccProxy;
-using namespace JDKSAvdeccMCU;
-
-void setup_server_files( HttpServerFiles &server_files )
-{
-    server_files["/"] =
-            JDKSAvdeccProxy::HttpServerBlob(
-                "text/html",
-                "<html><head><title>Index</title></head><body><h1>Hello</h1></body>"
-                );
-
-}
 
 int main(int argc, const char **argv )
 {
     Obbligato::Config::OptionGroups option_groups;
-
     Obbligato::Logger::addOptions(option_groups,false);
+    JDKSAvdeccProxy::ServiceController controller(option_groups);
 
-    NetworkService::Settings proxy_settings;
-    proxy_settings.addOptions(option_groups,"avdecc_proxy");
 
-    if( option_groups.parse(
-                argv+1,
-                "JDKSAvdeccProxyServer",
-                "Version 0.3",
-                std::cout) )
+    if( controller.init(argc,argv) )
     {
-        uv_loop_t *uv_loop = uv_default_loop();
-
-        HttpServerFiles server_files;
-        setup_server_files( server_files );
-
-
-        try
-        {
-            NetworkService service(proxy_settings,server_files,uv_loop);
-            service.start();
-
-            uv_run( uv_loop, UV_RUN_DEFAULT );
-
-            service.stop();
-        }
-        catch( std::runtime_error const &e )
-        {
-            ob_log_error("exception: runtime_error caught: ",e.what());
-        }
-        catch( std::logic_error const &e )
-        {
-            ob_log_error("exception: logic_error caught: ",e.what());
-        }
-        catch( std::exception const &e )
-        {
-            ob_log_error("exception caught: ",e.what());
-        }
+        controller.run();
     }
+
 }

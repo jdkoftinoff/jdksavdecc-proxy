@@ -28,22 +28,30 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
+#pragma once
 
-#include "JDKSAvdeccProxy/World.hpp"
+#include "World.hpp"
+#include "NetworkService.hpp"
+#include "ApsClient.hpp"
+#include "RawNetworkHandler.hpp"
 
-#include "JDKSAvdeccProxy/JDKSAvdeccProxy.hpp"
-
-
-int main(int argc, const char **argv )
+namespace JDKSAvdeccProxy
 {
-    Obbligato::Config::OptionGroups option_groups;
-    Obbligato::Logger::addOptions(option_groups,false);
-    JDKSAvdeccProxy::ServiceController controller(option_groups);
 
+class ServiceController
+{
+  public:
+    ServiceController( Obbligato::Config::OptionGroups &option_groups );
+    virtual ~ServiceController();
 
-    if( controller.init(argc,argv) )
-    {
-        controller.run();
-    }
+    virtual void setupServerFiles();
 
+    virtual bool init( int argc, const char **argv );
+    virtual bool run();
+
+    Obbligato::Config::OptionGroups &m_option_groups;
+    NetworkService::Settings m_proxy_settings;
+    HttpServerFiles m_server_files;
+    uv_loop_t *m_loop;
+};
 }

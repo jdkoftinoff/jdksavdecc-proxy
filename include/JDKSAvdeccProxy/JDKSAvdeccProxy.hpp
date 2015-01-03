@@ -34,6 +34,8 @@
 #include "ApsClient.hpp"
 #include "NetworkServiceBase.hpp"
 #include "NetworkService.hpp"
+#include "RawNetworkHandler.hpp"
+#include "ServiceController.hpp"
 
 namespace JDKSAvdeccProxy
 {
