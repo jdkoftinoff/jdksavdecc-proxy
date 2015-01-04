@@ -87,44 +87,43 @@ bool ServiceController::run()
 void ServiceController::setupServerFiles()
 {
     m_server_files["/"] = HttpServerBlob(
-                "text/html",
-                "<html><head>"
-                "<link rel='stylesheet' type='text/css' href='/theme.css'>"
-                "<title>JDKSAvdeccProxy</title></head>"
-                "<body>"
-                "<div id='main'>"
-                " <div id='top'>"
-                "  <div>AVDECC Proxy</div>"
-                " </div>"
-                " <div id='menu'>"
-                "  <ul>"
-                "   <li>About</li>"
-                "   <li>Status</li>"
-                "   <li>Configuration</li>"
-                "  </ul>"
-                " </div>"
-                " <div id='bottom'>"
-                "  <div id='about'>"
-                "<p>...about...</p>"
-                "  </div>"
-                "  <div id='status'>"
-                "<p>...status...</p>"
-                "  </div>"
-                "  <div id='configuration'>"
-                "<p>...configuration...</p>"
-                "  </div>"
-                " </div>"
-                "</div>"
-                "<div id='footer'>"
-                "<a href='https://avb.statusbar.com/'>Copyright 2015 By J.D. Koftinoff Software, Ltd.</a>"
-                "</div>"
-                "</body>"
-                );
+        "text/html",
+        "<html><head>"
+        "<link rel='stylesheet' type='text/css' href='/theme.css'>"
+        "<title>JDKSAvdeccProxy</title></head>"
+        "<body>"
+        "<div id='main'>"
+        " <div id='top'>"
+        "  <div>AVDECC Proxy</div>"
+        " </div>"
+        " <div id='menu'>"
+        "  <ul>"
+        "   <li>About</li>"
+        "   <li>Status</li>"
+        "   <li>Configuration</li>"
+        "  </ul>"
+        " </div>"
+        " <div id='bottom'>"
+        "  <div id='about'>"
+        "<p>...about...</p>"
+        "  </div>"
+        "  <div id='status'>"
+        "<p>...status...</p>"
+        "  </div>"
+        "  <div id='configuration'>"
+        "<p>...configuration...</p>"
+        "  </div>"
+        " </div>"
+        "</div>"
+        "<div id='footer'>"
+        "<a href='https://avb.statusbar.com/'>Copyright 2015 By J.D. Koftinoff "
+        "Software, Ltd.</a>"
+        "</div>"
+        "</body>" );
 
-    m_server_files["/theme.css"] = HttpServerBlob(
-                "text/css",
-                "div#menu { color: red; }\n"
-                "div#top { color: green; }\n"
-                );
+    m_server_files["/theme.css"]
+        = HttpServerBlob( "text/css",
+                          "div#menu { color: red; }\n"
+                          "div#top { color: green; }\n" );
 }
 }

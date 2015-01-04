@@ -68,10 +68,7 @@ void ApsClient::start()
     run();
 }
 
-void ApsClient::stop()
-{
-    m_owner->removeApsClient(this);
-}
+void ApsClient::stop() { m_owner->removeApsClient( this ); }
 
 void ApsClient::sendAvdeccToL2( Frame const &frame )
 {
@@ -105,9 +102,10 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
               []( uv_write_t *write_req, int status )
               {
         ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
-        uint8_t *data = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+        uint8_t *data
+            = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
         delete[] data;
-        delete write_req;        
+        delete write_req;
         if ( status < 0 )
         {
             self->closeTcpConnection();
@@ -136,18 +134,19 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
               []( uv_write_t *write_req, int status )
               {
         ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
-        uint8_t *data = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+        uint8_t *data
+            = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
         delete[] data;
         delete write_req;
 
         uv_close( (uv_handle_t *)self->m_tcp,
-                  [](uv_handle_t *handle)
-        {
+                  []( uv_handle_t *handle )
+                  {
             ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
             self->closeTcpConnection();
             self->run();
             self->stop();
-        });
+        } );
     } );
 }
 
