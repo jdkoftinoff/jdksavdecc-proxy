@@ -36,28 +36,19 @@
 namespace JDKSAvdeccProxy
 {
 
-ServiceController::ServiceController(
-    Obbligato::Config::OptionGroups &option_groups )
-    : m_option_groups( option_groups )
-{
-    m_proxy_settings.addOptions( option_groups, "avdecc_proxy" );
-
-    m_loop = uv_default_loop();
-}
+ServiceController::ServiceController() { m_loop = uv_default_loop(); }
 
 ServiceController::~ServiceController() {}
 
-bool ServiceController::init( int argc, const char **argv )
+void ServiceController::addOptions( Obbligato::Config::OptionGroups &options,
+                                    const std::string &options_prefix )
+{
+    m_proxy_settings.addOptions( options, options_prefix + "avdecc_proxy" );
+}
+
+bool ServiceController::init()
 {
     bool r = true;
-
-    m_proxy_settings.addOptions( m_option_groups, "avdecc_proxy" );
-
-    if ( !m_option_groups.parse(
-             argv + 1, "JDKSAvdeccProxyServer", "Version 0.3", std::cout ) )
-    {
-        throw std::runtime_error( "unable to parse settings" );
-    }
 
     setupServerFiles();
 

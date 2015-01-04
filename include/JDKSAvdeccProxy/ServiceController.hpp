@@ -41,15 +41,19 @@ namespace JDKSAvdeccProxy
 class ServiceController
 {
   public:
-    ServiceController( Obbligato::Config::OptionGroups &option_groups );
+    ServiceController();
     virtual ~ServiceController();
+
+    virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
+                             std::string const &options_prefix = "" );
 
     virtual void setupServerFiles();
 
-    virtual bool init( int argc, const char **argv );
+    virtual std::string getVersion() const { return "0.4"; }
+
+    virtual bool init();
     virtual bool run();
 
-    Obbligato::Config::OptionGroups &m_option_groups;
     NetworkService::Settings m_proxy_settings;
     HttpServerFiles m_server_files;
     uv_loop_t *m_loop;

@@ -142,7 +142,6 @@ void NetworkService::start()
           << m_settings.m_listen_host << ":" << m_settings.m_listen_port
           << " : " << uv_err_name( r );
 
-        ob_log_error( s.str() );
         throw std::runtime_error( s.str() );
     }
 
