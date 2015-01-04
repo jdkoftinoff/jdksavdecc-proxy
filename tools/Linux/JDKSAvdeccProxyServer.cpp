@@ -38,10 +38,20 @@ int main(int argc, const char **argv )
 {
     Obbligato::Config::OptionGroups option_groups;
     Obbligato::Logger::addOptions(option_groups,false);
-    JDKSAvdeccProxy::ServiceController controller(option_groups);
 
+    JDKSAvdeccProxy::ServiceController controller;
+    controller.addOptions(option_groups);
 
-    if( controller.init(argc,argv) )
+    if ( !option_groups.parse(
+             argv + 1,
+             "JDKSAvdeccProxyServer",
+             controller.getVersion(),
+             std::cout ) )
+    {
+        throw std::runtime_error( "unable to parse settings" );
+    }
+
+    if( controller.init() )
     {
         controller.run();
     }

@@ -136,13 +136,13 @@ void NetworkService::start()
     // if we got some sort of error, log it and throw
     if ( r )
     {
-        std::ostringstream s;
-
-        s << "NetworkService::startService() error listening to: "
-          << m_settings.m_listen_host << ":" << m_settings.m_listen_port
-          << " : " << uv_err_name( r );
-
-        throw std::runtime_error( s.str() );
+        throw std::runtime_error( ::Obbligato::formstring(
+            "NetworkService::startService() error listening to: ",
+            m_settings.m_listen_host,
+            ":",
+            m_settings.m_listen_port,
+            " : ",
+            uv_err_name( r ) ) );
     }
 
     // create a single 250 ms timer for updating state machines
