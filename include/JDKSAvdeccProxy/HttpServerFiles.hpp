@@ -40,7 +40,9 @@ class HttpServerFiles
 {
   public:
 
+    virtual void load() {}
 
+    std::map< std::string, HttpServerBlob > m_content;
 };
 
 }

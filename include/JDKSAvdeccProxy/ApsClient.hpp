@@ -32,6 +32,7 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
+#include "HttpServerFiles.hpp"
 
 namespace JDKSAvdeccProxy
 {

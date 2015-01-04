@@ -38,6 +38,7 @@ namespace JDKSAvdeccProxy
 class HttpServerBlob
 {
   public:
+#if 0
     static inline std::vector<uint8_t> load( std::string const &fname )
     {
         std::vector<uint8_t> r;
@@ -48,7 +49,6 @@ class HttpServerBlob
         return r;
     }
 
-    HttpServerBlob() {}
 
     HttpServerBlob( std::string const &mime_type, std::string const &content )
         : m_mime_type( mime_type ), m_content( content.length() )
@@ -58,6 +58,13 @@ class HttpServerBlob
             m_content[i] = content[i];
         }
     }
+#endif
+
+    HttpServerBlob()
+        : m_mime_type()
+        , m_content(0)
+        , m_content_length(0)
+    {}
 
     HttpServerBlob( std::string const &mime_type,
                     uint8_t const * content,
@@ -71,7 +78,7 @@ class HttpServerBlob
     HttpServerBlob( const HttpServerBlob &other )
         : m_mime_type( other.m_mime_type )
         , m_content( other.m_content )
-        , m_content_length( m_content_length )
+        , m_content_length( other.m_content_length )
     {
     }
 

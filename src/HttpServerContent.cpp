@@ -30,13 +30,22 @@
 */
 
 #include "JDKSAvdeccProxy/World.hpp"
-#include "JDKSAvdeccProxy/HttpServerFiles.hpp"
+#include "JDKSAvdeccProxy/HttpServerContent.hpp"
 
 namespace JDKSAvdeccProxy
 {
     namespace HttpServerContentData
     {
-#include "HttpServerContent/all.h"
+#include "HttpServerContent/all_content.h"
+    }
+
+    void HttpServerContent::load()
+    {
+        m_content["/index.html"] = HttpServerBlob(
+                    "text/html",
+                    HttpServerContentData::index_html,
+                    HttpServerContentData::index_html_len
+                    );
     }
 }
 

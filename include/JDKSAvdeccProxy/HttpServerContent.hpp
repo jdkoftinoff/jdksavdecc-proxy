@@ -40,7 +40,7 @@ namespace JDKSAvdeccProxy
 class HttpServerContent : public HttpServerFiles
 {
   public:
-
+    virtual void load();
 };
 
 }

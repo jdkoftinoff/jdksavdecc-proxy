@@ -34,4 +34,6 @@
 
 namespace JDKSAvdeccProxy
 {
+const char *http_server_files_file = __FILE__;
+
 }

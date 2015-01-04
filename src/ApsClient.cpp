@@ -238,7 +238,7 @@ std::vector<uint8_t> const *
     using ::Obbligato::formstring;
 
     std::vector<uint8_t> const *r = 0;
-
+#if 0
     HttpServerFiles::const_iterator item
         = m_builtin_files.find( request.m_path );
 
@@ -257,7 +257,7 @@ std::vector<uint8_t> const *
         response->m_reason_phrase = "OK";
         r = &item->second.m_content;
     }
-
+#endif
     return r;
 }
 }

@@ -34,4 +34,5 @@
 
 namespace JDKSAvdeccProxy
 {
+    const char *http_server_blob_file = __FILE__;
 }
