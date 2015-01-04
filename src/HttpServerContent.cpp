@@ -28,17 +28,15 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
-#pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
-#include "HttpServerBlob.hpp"
-#include "HttpServerFiles.hpp"
-#include "ApsClient.hpp"
-#include "NetworkServiceBase.hpp"
-#include "NetworkService.hpp"
-#include "RawNetworkHandler.hpp"
-#include "ServiceController.hpp"
+#include "JDKSAvdeccProxy/World.hpp"
+#include "JDKSAvdeccProxy/HttpServerFiles.hpp"
 
 namespace JDKSAvdeccProxy
 {
+    namespace HttpServerContentData
+    {
+#include "HttpServerContent/all.h"
+    }
 }
+

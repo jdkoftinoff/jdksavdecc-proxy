@@ -35,57 +35,6 @@
 namespace JDKSAvdeccProxy
 {
 
-class HttpServerBlob
-{
-  public:
-    static inline std::vector<uint8_t> load( std::string const &fname )
-    {
-        std::vector<uint8_t> r;
-        std::ifstream f( fname, std::ios::binary | std::ios::in );
-        f.seekg( 0, std::ios::end );
-        r.resize( f.tellg() );
-        f.read( (char *)r.data(), r.size() );
-        return r;
-    }
-
-    HttpServerBlob() {}
-
-    HttpServerBlob( std::string const &mime_type, std::string const &content )
-        : m_mime_type( mime_type ), m_content( content.length() )
-    {
-        for ( size_t i = 0; i < content.length(); ++i )
-        {
-            m_content[i] = content[i];
-        }
-    }
-
-    HttpServerBlob( std::string const &mime_type, std::vector<uint8_t> content )
-        : m_mime_type( mime_type ), m_content( content )
-    {
-    }
-
-    HttpServerBlob( const HttpServerBlob &other )
-        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
-    {
-    }
-
-    HttpServerBlob( HttpServerBlob &&other )
-        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
-    {
-    }
-
-    HttpServerBlob &operator=( const HttpServerBlob &other )
-    {
-        m_mime_type = other.m_mime_type;
-        m_content = other.m_content;
-        return *this;
-    }
-
-    std::string m_mime_type;
-    std::vector<uint8_t> m_content;
-};
-
-typedef std::map<std::string, HttpServerBlob> HttpServerFiles;
 
 class NetworkServiceBase
 {

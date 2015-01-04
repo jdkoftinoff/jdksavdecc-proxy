@@ -1,0 +1,111 @@
+body {
+	background-color: #EBE8E4;
+	color: #222;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-weight: 300;
+	font-size: 15px;
+}
+
+
+header {
+    background-color: #ffffff;
+    color: #000;
+    border: 1px solid #555555;
+    display: block;
+    margin: 0em 0em 0em 0em;
+    padding: 0em 1em 0em 1em;
+	overflow: hidden;
+	width: 95%; 
+}
+
+nav {
+    background-color: #ffffff;
+    color: #888;
+    border: 1px solid #555555;
+    display: block;
+    margin: 0em 0em 0em 0em;
+    padding: 0em 1em 0em 1em;
+	overflow: hidden;
+	width: 95%; 
+}
+
+nav ul {
+	margin: 0;
+	padding: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    list-style-type: none;
+    padding: 0em 0.5em 0em 0.5em;
+
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    -ms-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s; 
+}
+
+nav > ul > li > a {
+    color: #aaa;
+    display: block;
+    line-height: 56px;
+    padding: 0 24px;
+    text-decoration: none;
+}
+		
+nav > ul > li > a > .caret {
+    border-top: 4px solid #aaa;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    content: "";
+    display: inline-block;
+    height: 0;
+    width: 0;
+    vertical-align: middle;
+
+    -webkit-transition: color 0.1s linear;
+    -moz-transition: color 0.1s linear;
+    -o-transition: color 0.1s linear;
+      transition: color 0.1s linear; 
+}
+		
+nav > ul > li:hover {
+  background-color: rgb( 40, 44, 47 );
+}
+
+nav > ul > li:hover > a {
+  color: rgb( 255, 255, 255 );
+}
+
+nav > ul > li:hover > a > .caret {
+  border-top-color: rgb( 255, 255, 255 );
+}
+
+main 
+{
+    background-color: #ffffff;
+    color: #000;
+    border: 1px solid #555555;
+    display: block;
+    margin: 0em 0em 0em 0em;
+    padding: 0em 1em 0em 1em;
+	overflow: hidden;
+	width: 95%; 
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.055);
+}
+
+        		
+footer {
+    text-align: center;
+    background-color: #ffffff;
+    color: #000;
+    border: 1px solid #555555;
+    display: block;
+    margin: 0em 0em 0em 0em;
+    padding: 0em 1em 0em 1em;
+	overflow: hidden;
+	width: 95%; 
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.055);
+}
+

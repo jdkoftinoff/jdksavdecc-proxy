@@ -30,15 +30,63 @@
 */
 #pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
-#include "HttpServerBlob.hpp"
-#include "HttpServerFiles.hpp"
-#include "ApsClient.hpp"
-#include "NetworkServiceBase.hpp"
-#include "NetworkService.hpp"
-#include "RawNetworkHandler.hpp"
-#include "ServiceController.hpp"
+#include "World.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class HttpServerBlob
+{
+  public:
+    static inline std::vector<uint8_t> load( std::string const &fname )
+    {
+        std::vector<uint8_t> r;
+        std::ifstream f( fname, std::ios::binary | std::ios::in );
+        f.seekg( 0, std::ios::end );
+        r.resize( f.tellg() );
+        f.read( (char *)r.data(), r.size() );
+        return r;
+    }
+
+    HttpServerBlob() {}
+
+    HttpServerBlob( std::string const &mime_type, std::string const &content )
+        : m_mime_type( mime_type ), m_content( content.length() )
+    {
+        for ( size_t i = 0; i < content.length(); ++i )
+        {
+            m_content[i] = content[i];
+        }
+    }
+
+    HttpServerBlob( std::string const &mime_type,
+                    uint8_t const * content,
+                    size_t content_length )
+        : m_mime_type( mime_type )
+        , m_content( content )
+        , m_content_length( content_length )
+    {
+    }
+
+    HttpServerBlob( const HttpServerBlob &other )
+        : m_mime_type( other.m_mime_type )
+        , m_content( other.m_content )
+        , m_content_length( m_content_length )
+    {
+    }
+
+    HttpServerBlob &operator=( const HttpServerBlob &other )
+    {
+        m_mime_type = other.m_mime_type;
+        m_content = other.m_content;
+        m_content_length = other.m_content_length;
+        return *this;
+    }
+
+    std::string m_mime_type;
+    uint8_t const * m_content;
+    size_t m_content_length;
+};
+
 }
+

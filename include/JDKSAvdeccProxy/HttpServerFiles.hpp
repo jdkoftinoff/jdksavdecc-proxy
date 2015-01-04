@@ -30,15 +30,18 @@
 */
 #pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
+#include "World.hpp"
 #include "HttpServerBlob.hpp"
-#include "HttpServerFiles.hpp"
-#include "ApsClient.hpp"
-#include "NetworkServiceBase.hpp"
-#include "NetworkService.hpp"
-#include "RawNetworkHandler.hpp"
-#include "ServiceController.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class HttpServerFiles
+{
+  public:
+
+
+};
+
 }
+
