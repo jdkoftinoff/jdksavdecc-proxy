@@ -44,9 +44,9 @@ RawNetworkHandler::RawNetworkHandler( JDKSAvdeccProxy::NetworkService *owner,
 
 RawNetworkHandler::~RawNetworkHandler() {}
 
-void RawNetworkHandler::startClient() {}
+void RawNetworkHandler::start() {}
 
-void RawNetworkHandler::stopClient() {}
+void RawNetworkHandler::stop() {}
 
 void RawNetworkHandler::readAlloc( size_t suggested_size, uv_buf_t *buf ) {}
 

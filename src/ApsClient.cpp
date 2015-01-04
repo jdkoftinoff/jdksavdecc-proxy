@@ -36,11 +36,50 @@
 namespace JDKSAvdeccProxy
 {
 
+void ApsClient::start()
+{
+    uv_read_start(
+        (uv_stream_t *)m_tcp,
+        []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
+        {
+            ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
+            buf->base = &self->m_incoming_buffer[0];
+            buf->len = self->m_incoming_buffer.size();
+        },
+        []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
+        {
+            ApsClient *self = reinterpret_cast<ApsClient *>( stream->data );
+            if ( nread <= 0 )
+            {
+                self->onTcpConnectionClosed();
+                self->run();
+                self->stop();
+            }
+            else
+            {
+                self->onIncomingTcpData(
+                    reinterpret_cast<uint8_t *>( buf->base ), nread );
+                self->run();
+            }
+        } );
+
+    run();
+    onIncomingTcpConnection();
+    run();
+}
+
+void ApsClient::stop()
+{
+    m_owner->removeApsClient(this);
+}
+
 void ApsClient::sendAvdeccToL2( Frame const &frame )
 {
     ApsStateMachine::sendAvdeccToL2( frame );
     // TODO:
 }
+
+void ApsClient::closeTcpConnection() {}
 
 void ApsClient::closeTcpServer()
 {
@@ -52,15 +91,64 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
 {
     ApsStateMachine::sendTcpData( data, len );
 
+    uv_buf_t buf;
+    buf.base = new char[len];
+    buf.len = len;
+    memcpy( buf.base, data, len );
     uv_write_t *write_req = new uv_write_t;
+    write_req->data = this;
 
-    // uv_write(&write_req,this->m_)
-    m_owner->getLoop();
+    uv_write( write_req,
+              (uv_stream_t *)m_tcp,
+              &buf,
+              1,
+              []( uv_write_t *write_req, int status )
+              {
+        ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
+        uint8_t *data = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+        delete[] data;
+        delete write_req;        
+        if ( status < 0 )
+        {
+            self->closeTcpConnection();
+            self->stop();
+        }
+        self->run();
+    } );
 }
 
 void ApsClient::sendHttpResponse( const HttpResponse &response )
 {
-    // TODO:
+    std::vector<uint8_t> data_to_send;
+    response.flatten( &data_to_send );
+
+    uv_buf_t buf;
+    buf.len = data_to_send.size();
+    buf.base = new char[buf.len];
+    memcpy( buf.base, data_to_send.data(), buf.len );
+    uv_write_t *write_req = new uv_write_t;
+    write_req->data = this;
+
+    uv_write( write_req,
+              (uv_stream_t *)m_tcp,
+              &buf,
+              1,
+              []( uv_write_t *write_req, int status )
+              {
+        ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
+        uint8_t *data = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+        delete[] data;
+        delete write_req;
+
+        uv_close( (uv_handle_t *)self->m_tcp,
+                  [](uv_handle_t *handle)
+        {
+            ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
+            self->closeTcpConnection();
+            self->run();
+            self->stop();
+        });
+    } );
 }
 
 ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
@@ -148,20 +236,23 @@ std::vector<uint8_t> const *
     ApsClient::StateEventsWithWebServing::getHttpFileHeaders(
         const HttpRequest &request, HttpResponse *response )
 {
+    using ::Obbligato::formstring;
+
     std::vector<uint8_t> const *r = 0;
 
     HttpServerFiles::const_iterator item
         = m_builtin_files.find( request.m_path );
+
     if ( item != m_builtin_files.end() )
     {
-        std::ostringstream content_length;
-        content_length << std::dec << item->second.m_content.size();
-
         response->m_headers.push_back( "Connection: Close" );
-        response->m_headers.push_back( "Content-Type: "
-                                       + item->second.m_mime_type );
-        response->m_headers.push_back( "Content-Length: "
-                                       + content_length.str() );
+
+        response->m_headers.push_back(
+            formstring( "Content-Type: ", item->second.m_mime_type ) );
+
+        response->m_headers.push_back(
+            formstring( "Content-Length: ", item->second.m_content.size() ) );
+
         response->m_version = "HTTP/1.1";
         response->m_status_code = "200";
         response->m_reason_phrase = "OK";

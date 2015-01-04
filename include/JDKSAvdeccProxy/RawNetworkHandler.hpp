@@ -51,16 +51,16 @@ class RawNetworkHandler
     virtual ~RawNetworkHandler();
 
     ///
-    /// \brief startClient
+    /// \brief start
     /// Do any special initializations for the client handler
     ///
-    virtual void startClient();
+    virtual void start();
 
     ///
     /// \brief stopClient
     ///  stop any pending requests for the client handler
     ///
-    virtual void stopClient();
+    virtual void stop();
 
     ///
     /// \brief readAlloc

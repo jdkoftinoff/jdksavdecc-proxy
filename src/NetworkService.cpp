@@ -188,6 +188,7 @@ void NetworkService::onNewConnection()
             aps->setup();
             client->data = (void *)aps.get();
             aps->setTcp( client );
+            aps->start();
             m_active_client_handlers.push_back( aps );
             aps->run();
         }
@@ -207,6 +208,7 @@ void NetworkService::onAvdeccData( ssize_t nread,
                                    const sockaddr *addr,
                                    unsigned flags )
 {
+    // TODO: form Frame and pass to all clients
 }
 
 void NetworkService::sendAvdeccData( const JDKSAvdeccMCU::Frame &frame ) {}
@@ -224,6 +226,7 @@ void NetworkService::onTick()
           ++i )
     {
         ( *i )->onTimeTick( time_in_seconds );
+        ( *i )->run();
     }
 }
 

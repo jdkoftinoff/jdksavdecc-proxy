@@ -61,13 +61,13 @@ class ApsClient : public ApsStateMachine
 
     void setTcp( uv_tcp_t *tcp ) { m_tcp = tcp; }
 
-    virtual void start() {}
+    virtual void start();
 
-    virtual void stop() {}
+    virtual void stop();
 
     virtual void sendAvdeccToL2( Frame const &frame );
 
-    virtual void closeTcpConnection() {}
+    virtual void closeTcpConnection();
 
     virtual void closeTcpServer();
 
@@ -118,5 +118,7 @@ class ApsClient : public ApsStateMachine
     HttpRequest m_http_server_request;
     HttpServerFiles const &m_http_server_files;
     uv_tcp_t *m_tcp;
+
+    std::array<char, 8192> m_incoming_buffer;
 };
 }
