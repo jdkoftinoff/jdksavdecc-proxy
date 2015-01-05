@@ -113,8 +113,14 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
               []( uv_write_t *write_req, int status )
               {
         ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
+#ifdef _WIN32
+        // TODO: Free sent data on Win32
+#else
         uint8_t *data
             = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+
+        delete[] data;
+#endif
         delete[] data;
         delete write_req;
         if ( status < 0 )
@@ -145,9 +151,18 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
               []( uv_write_t *write_req, int status )
               {
         ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
+
+#ifdef _WIN32
+        uint8_t *data = reinterpret_cast<uint8_t *>(write_req->write_buffer.base);
+
+        // TODO: Free sent data on Win32
+#else
         uint8_t *data
             = reinterpret_cast<uint8_t *>( write_req->bufsml[0].base );
+
         delete[] data;
+#endif
+
         delete write_req;
 
         uv_close( (uv_handle_t *)&self->m_tcp,
