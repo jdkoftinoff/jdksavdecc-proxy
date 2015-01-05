@@ -34,18 +34,31 @@
 
 namespace JDKSAvdeccProxy
 {
-    namespace HttpServerContentData
-    {
+namespace HttpServerContentData
+{
 #include "HttpServerContent/all_content.h"
-    }
-
-    void HttpServerContent::load()
-    {
-        m_content["/index.html"] = HttpServerBlob(
-                    "text/html",
-                    HttpServerContentData::index_html,
-                    HttpServerContentData::index_html_len
-                    );
-    }
 }
 
+void HttpServerContent::load()
+{
+    std::shared_ptr<HttpServerBlob> index = std::make_shared<HttpServerBlob>(
+        "text/html",
+        HttpServerContentData::index_html,
+        HttpServerContentData::index_html_len );
+    insert( "/", index );
+    insert( "/index.html", index );
+
+    std::shared_ptr<HttpServerBlob> css = std::make_shared<HttpServerBlob>(
+        "text/css",
+        HttpServerContentData::theme_css,
+        HttpServerContentData::theme_css_len );
+    insert( "/theme.css", css );
+
+    std::shared_ptr<HttpServerBlob> logo_png = std::make_shared<HttpServerBlob>(
+        "image/png",
+        HttpServerContentData::logo_png,
+        HttpServerContentData::logo_png_len );
+
+    insert( "/logo.png", logo_png );
+}
+}

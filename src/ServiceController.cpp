@@ -61,7 +61,7 @@ bool ServiceController::run()
 
     try
     {
-        NetworkService service( m_proxy_settings, m_server_files, m_loop );
+        NetworkService service( m_proxy_settings, m_server_content, m_loop );
         service.start();
 
         uv_run( m_loop, UV_RUN_DEFAULT );
@@ -84,9 +84,5 @@ bool ServiceController::run()
     return r;
 }
 
-void ServiceController::setupServerFiles()
-{
-    m_server_files.load();
-}
-
+void ServiceController::setupServerFiles() { m_server_content.load(); }
 }

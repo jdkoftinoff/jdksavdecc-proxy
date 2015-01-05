@@ -60,14 +60,10 @@ class HttpServerBlob
     }
 #endif
 
-    HttpServerBlob()
-        : m_mime_type()
-        , m_content(0)
-        , m_content_length(0)
-    {}
+    HttpServerBlob() : m_mime_type(), m_content( 0 ), m_content_length( 0 ) {}
 
     HttpServerBlob( std::string const &mime_type,
-                    uint8_t const * content,
+                    uint8_t const *content,
                     size_t content_length )
         : m_mime_type( mime_type )
         , m_content( content )
@@ -90,10 +86,10 @@ class HttpServerBlob
         return *this;
     }
 
+    virtual ~HttpServerBlob() {}
+
     std::string m_mime_type;
-    uint8_t const * m_content;
+    uint8_t const *m_content;
     size_t m_content_length;
 };
-
 }
-

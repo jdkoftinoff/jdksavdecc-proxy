@@ -34,6 +34,7 @@
 #include "NetworkService.hpp"
 #include "ApsClient.hpp"
 #include "RawNetworkHandler.hpp"
+#include "HttpServerContent.hpp"
 
 namespace JDKSAvdeccProxy
 {
@@ -55,7 +56,7 @@ class ServiceController
     virtual bool run();
 
     NetworkService::Settings m_proxy_settings;
-    HttpServerFiles m_server_files;
+    HttpServerContent m_server_content;
     uv_loop_t *m_loop;
 };
 }

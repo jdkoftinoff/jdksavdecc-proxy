@@ -39,11 +39,16 @@ namespace JDKSAvdeccProxy
 class HttpServerFiles
 {
   public:
+    virtual ~HttpServerFiles();
 
-    virtual void load() {}
+    virtual void load();
 
-    std::map< std::string, HttpServerBlob > m_content;
+    void insert( std::string const &path,
+                 std::shared_ptr<HttpServerBlob> blob );
+
+    virtual std::shared_ptr<HttpServerBlob>
+        find( std::string const &path ) const;
+
+    std::map<std::string, std::shared_ptr<HttpServerBlob>> m_content;
 };
-
 }
-

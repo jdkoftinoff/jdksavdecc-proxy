@@ -35,7 +35,6 @@
 namespace JDKSAvdeccProxy
 {
 
-
 class NetworkServiceBase
 {
   public:

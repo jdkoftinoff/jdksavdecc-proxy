@@ -204,12 +204,15 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileGetRequest(
 
     HttpResponse response;
 
-    std::vector<uint8_t> const *content;
-    content = getHttpFileHeaders( request, &response );
+    auto content = getHttpFileHeaders( request, &response );
 
     if ( content )
     {
-        response.m_content = *content;
+        response.m_content.clear();
+        response.m_content.resize( content->m_content_length );
+        memcpy( response.m_content.data(),
+                content->m_content,
+                content->m_content_length );
         m_aps_client->sendHttpResponse( response );
         r = true;
     }
@@ -231,33 +234,29 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileHeadRequest(
     return r;
 }
 
-std::vector<uint8_t> const *
+std::shared_ptr<HttpServerBlob>
     ApsClient::StateEventsWithWebServing::getHttpFileHeaders(
         const HttpRequest &request, HttpResponse *response )
 {
     using ::Obbligato::formstring;
 
-    std::vector<uint8_t> const *r = 0;
-#if 0
-    HttpServerFiles::const_iterator item
-        = m_builtin_files.find( request.m_path );
+    auto i = m_builtin_files.find( request.m_path );
 
-    if ( item != m_builtin_files.end() )
+    if ( i && i->m_content )
     {
         response->m_headers.push_back( "Connection: Close" );
 
         response->m_headers.push_back(
-            formstring( "Content-Type: ", item->second.m_mime_type ) );
+            formstring( "Content-Type: ", i->m_mime_type ) );
 
         response->m_headers.push_back(
-            formstring( "Content-Length: ", item->second.m_content.size() ) );
+            formstring( "Content-Length: ", i->m_content_length ) );
 
         response->m_version = "HTTP/1.1";
         response->m_status_code = "200";
         response->m_reason_phrase = "OK";
-        r = &item->second.m_content;
     }
-#endif
-    return r;
+
+    return i;
 }
 }

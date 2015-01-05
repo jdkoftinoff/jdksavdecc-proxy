@@ -34,6 +34,26 @@
 
 namespace JDKSAvdeccProxy
 {
-const char *http_server_files_file = __FILE__;
 
+HttpServerFiles::~HttpServerFiles() {}
+
+void HttpServerFiles::load() {}
+
+std::shared_ptr<HttpServerBlob>
+    HttpServerFiles::find( const std::string &path ) const
+{
+    std::shared_ptr<HttpServerBlob> r;
+    auto i = m_content.find( path );
+    if ( i != m_content.end() )
+    {
+        r = i->second;
+    }
+    return r;
+}
+
+void HttpServerFiles::insert( std::string const &path,
+                              std::shared_ptr<HttpServerBlob> blob )
+{
+    m_content[path] = blob;
+}
 }
