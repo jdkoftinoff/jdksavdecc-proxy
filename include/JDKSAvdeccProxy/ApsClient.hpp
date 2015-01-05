@@ -41,7 +41,7 @@ class NetworkService;
 class ApsClient : public ApsStateMachine
 {
   public:
-    ApsClient( NetworkService *owner,
+    ApsClient( NetworkServiceBase *owner,
                uint16_t &assigned_id_count,
                active_connections_type &active_connections,
                std::string const &path,
@@ -52,7 +52,7 @@ class ApsClient : public ApsStateMachine
                            &m_my_states,
                            assigned_id_count,
                            active_connections )
-        , m_my_events( &m_http_server_parser, path, http_server_files )
+        , m_my_events( &m_http_server_parser, path, owner )
         , m_owner( owner )
         , m_http_server_parser( &m_http_server_request, &m_my_events )
         , m_http_server_files( http_server_files )
@@ -79,7 +79,7 @@ class ApsClient : public ApsStateMachine
       public:
         StateEventsWithWebServing( HttpServerParserSimple *parser,
                                    std::string connect_path,
-                                   HttpServerFiles const &builtin_files );
+                                   NetworkServiceBase *network_service );
 
         void setApsClient( ApsClient *aps_client )
         {
@@ -90,21 +90,9 @@ class ApsClient : public ApsStateMachine
         virtual bool onIncomingHttpHeadRequest( HttpRequest const &request );
         virtual bool onIncomingHttpPostRequest( HttpRequest const &request );
 
-        virtual bool onIncomingHttpCgiGetRequest( HttpRequest const &request );
-        virtual bool onIncomingHttpCgiPostRequest( HttpRequest const &request );
-        virtual bool onIncomingHttpFileGetRequest( HttpRequest const &request );
-        virtual bool
-            onIncomingHttpFileHeadRequest( HttpRequest const &request );
-
-        virtual bool error404( HttpRequest const &request );
-
-        virtual std::shared_ptr<HttpServerBlob>
-            getHttpFileHeaders( HttpRequest const &request,
-                                HttpResponse *response );
-
       protected:
         ApsClient *m_aps_client;
-        HttpServerFiles const &m_builtin_files;
+        NetworkServiceBase *m_network_service;
     };
 
   protected:
@@ -115,7 +103,7 @@ class ApsClient : public ApsStateMachine
     States m_my_states;
     StateEventsWithWebServing m_my_events;
 
-    NetworkService *m_owner;
+    NetworkServiceBase *m_owner;
 
     HttpServerParserSimple m_http_server_parser;
     HttpRequest m_http_server_request;

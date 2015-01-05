@@ -130,6 +130,21 @@ class NetworkService : public NetworkServiceBase
 
     virtual void sendAvdeccToL2( ApsClient *from, Frame const &frame );
 
+    virtual bool onIncomingHttpFileGetRequest( HttpRequest const &request,
+                                               HttpResponse *response );
+    virtual bool onIncomingHttpFileHeadRequest( HttpRequest const &request,
+                                                HttpResponse *response );
+    virtual bool onIncomingHttpCgiGetRequest( HttpRequest const &request,
+                                              HttpResponse *response );
+    virtual bool onIncomingHttpCgiPostRequest( HttpRequest const &request,
+                                               HttpResponse *response );
+
+    virtual bool error404( const HttpRequest &request, HttpResponse *response );
+
+    virtual std::shared_ptr<HttpServerBlob>
+        getHttpFileHeaders( HttpRequest const &request,
+                            HttpResponse *response );
+
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
     /// \return uv_loop_t pointer
@@ -149,5 +164,6 @@ class NetworkService : public NetworkServiceBase
     std::vector<std::shared_ptr<ApsClient>> m_active_client_handlers;
     std::vector<std::shared_ptr<ApsClient>> m_available_client_handlers;
     RawNetworkHandler m_raw_network_handler;
+    HttpServerFiles const &m_builtin_files;
 };
 }

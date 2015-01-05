@@ -157,8 +157,8 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
 ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
     HttpServerParserSimple *parser,
     std::string connect_path,
-    const HttpServerFiles &builtin_files )
-    : StateEvents( parser, connect_path ), m_builtin_files( builtin_files )
+    NetworkServiceBase *network_service )
+    : StateEvents( parser, connect_path ), m_network_service( network_service )
 {
 }
 
@@ -166,18 +166,21 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
     HttpRequest const &request )
 {
     bool r = false;
-    if ( onIncomingHttpFileGetRequest( request ) )
+    HttpResponse response;
+
+    if ( m_network_service->onIncomingHttpFileGetRequest( request, &response ) )
     {
         r = true;
     }
-    else if ( onIncomingHttpCgiGetRequest( request ) )
+    else if ( m_network_service->onIncomingHttpCgiGetRequest( request,
+                                                              &response ) )
     {
         r = true;
     }
 
     if ( r == false )
     {
-        r = error404( request );
+        r = m_network_service->error404( request, &response );
     }
     return r;
 }
@@ -185,113 +188,29 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
 bool ApsClient::StateEventsWithWebServing::onIncomingHttpHeadRequest(
     HttpRequest const &request )
 {
-    return onIncomingHttpFileHeadRequest( request );
+    bool r = false;
+    HttpResponse response;
+
+    if ( m_network_service->onIncomingHttpFileHeadRequest( request,
+                                                           &response ) )
+    {
+        r = true;
+    }
+
+    return r;
 }
 
 bool ApsClient::StateEventsWithWebServing::onIncomingHttpPostRequest(
     HttpRequest const &request )
 {
-    return onIncomingHttpCgiPostRequest( request );
-}
-
-bool ApsClient::StateEventsWithWebServing::onIncomingHttpCgiGetRequest(
-    HttpRequest const &request )
-{
-    return false;
-}
-
-bool ApsClient::StateEventsWithWebServing::onIncomingHttpCgiPostRequest(
-    HttpRequest const &request )
-{
-    return false;
-}
-
-bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileGetRequest(
-    HttpRequest const &request )
-{
     bool r = false;
-
     HttpResponse response;
 
-    auto content = getHttpFileHeaders( request, &response );
-
-    if ( content )
+    if ( m_network_service->onIncomingHttpCgiPostRequest( request, &response ) )
     {
-        response.m_content.clear();
-        response.m_content.resize( content->m_content_length );
-        memcpy( response.m_content.data(),
-                content->m_content,
-                content->m_content_length );
-        m_aps_client->sendHttpResponse( response );
         r = true;
     }
+
     return r;
-}
-
-bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileHeadRequest(
-    const HttpRequest &request )
-{
-    bool r = false;
-
-    HttpResponse response;
-
-    if ( getHttpFileHeaders( request, &response ) )
-    {
-        m_aps_client->sendHttpResponse( response );
-        r = true;
-    }
-    return r;
-}
-
-bool
-    ApsClient::StateEventsWithWebServing::error404( const HttpRequest &request )
-{
-    using ::Obbligato::formstring;
-
-    HttpResponse response;
-
-    response.setContent(
-        "<DOCTYPE html><html lang=\"en\"><h1>Not Found</h1></html>" );
-
-    response.addHeader( "Connection", "Close" );
-
-    response.addHeader( "Content-Type", "text/html" );
-
-    response.addHeader(
-        formstring( "Content-Length", ": ", response.m_content.size() ) );
-
-    response.m_version = "HTTP/1.1";
-    response.m_status_code = "404";
-    response.m_reason_phrase = "Not Found";
-
-    m_aps_client->sendHttpResponse( response );
-
-    return true;
-}
-
-std::shared_ptr<HttpServerBlob>
-    ApsClient::StateEventsWithWebServing::getHttpFileHeaders(
-        const HttpRequest &request, HttpResponse *response )
-{
-    using ::Obbligato::formstring;
-
-    auto i = m_builtin_files.find( request.m_path );
-
-    if ( i && i->m_content )
-    {
-        response->m_headers.push_back( "Connection: Close" );
-
-        response->m_headers.push_back(
-            formstring( "Content-Type: ", i->m_mime_type ) );
-
-        response->m_headers.push_back(
-            formstring( "Content-Length: ", i->m_content_length ) );
-
-        response->m_version = "HTTP/1.1";
-        response->m_status_code = "200";
-        response->m_reason_phrase = "OK";
-    }
-
-    return i;
 }
 }

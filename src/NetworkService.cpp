@@ -77,6 +77,7 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     , m_assigned_id_count( 0 )
     , m_active_ids()
     , m_raw_network_handler( this, uv_loop )
+    , m_builtin_files( server_files )
 {
     for ( int i = 0; i < settings.m_max_clients; ++i )
     {
@@ -233,6 +234,97 @@ void NetworkService::onTick()
 void NetworkService::sendAvdeccToL2( ApsClient *from, Frame const &frame )
 {
     // TODO: send the avdecc message to the L2 network
+}
+
+bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
+                                                   HttpResponse *response )
+{
+    bool r = false;
+
+    auto content = getHttpFileHeaders( request, response );
+
+    if ( content )
+    {
+        response->m_content.clear();
+        response->m_content.resize( content->m_content_length );
+        memcpy( response->m_content.data(),
+                content->m_content,
+                content->m_content_length );
+        r = true;
+    }
+    return r;
+}
+
+bool NetworkService::onIncomingHttpFileHeadRequest( const HttpRequest &request,
+                                                    HttpResponse *response )
+{
+    bool r = false;
+
+    if ( getHttpFileHeaders( request, response ) )
+    {
+        r = true;
+    }
+    return r;
+}
+
+bool NetworkService::onIncomingHttpCgiGetRequest( const HttpRequest &request,
+                                                  HttpResponse *response )
+{
+    return false;
+}
+
+bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
+                                                   HttpResponse *response )
+{
+    return false;
+}
+
+std::shared_ptr<HttpServerBlob>
+    NetworkService::getHttpFileHeaders( const HttpRequest &request,
+                                        HttpResponse *response )
+{
+    using ::Obbligato::formstring;
+
+    auto i = m_builtin_files.find( request.m_path );
+
+    if ( i && i->m_content )
+    {
+        response->m_headers.push_back( "Connection: Close" );
+
+        response->m_headers.push_back(
+            formstring( "Content-Type: ", i->m_mime_type ) );
+
+        response->m_headers.push_back(
+            formstring( "Content-Length: ", i->m_content_length ) );
+
+        response->m_version = "HTTP/1.1";
+        response->m_status_code = "200";
+        response->m_reason_phrase = "OK";
+    }
+
+    return i;
+}
+
+bool NetworkService::error404( const HttpRequest &request,
+                               HttpResponse *response )
+{
+    using ::Obbligato::formstring;
+
+    response->setContent(
+        "<DOCTYPE html><html lang=\"en\"><h1>Not Found</h1></html>" );
+
+    response->addHeader( "Connection", "Close" );
+
+    response->addHeader( "Content-Type", "text/html" );
+
+    response->addHeader(
+        formstring( "Content-Length", ": ", response->m_content.size() ) );
+
+    response->m_version = "HTTP/1.1";
+    response->m_status_code = "404";
+    response->m_reason_phrase = "Not Found";
+
+    return true;
 }
 
 void NetworkService::removeApsClient( ApsClient *client )

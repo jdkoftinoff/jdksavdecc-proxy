@@ -31,9 +31,12 @@
 #pragma once
 
 #include "World.hpp"
+#include "HttpServerBlob.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class ApsClient;
 
 class NetworkServiceBase
 {
@@ -68,6 +71,24 @@ class NetworkServiceBase
     /// Stop the network service
     ///
     virtual void stop() = 0;
+
+    virtual bool onIncomingHttpFileGetRequest( HttpRequest const &request,
+                                               HttpResponse *response ) = 0;
+    virtual bool onIncomingHttpFileHeadRequest( HttpRequest const &request,
+                                                HttpResponse *response ) = 0;
+    virtual bool onIncomingHttpCgiGetRequest( HttpRequest const &request,
+                                              HttpResponse *response ) = 0;
+    virtual bool onIncomingHttpCgiPostRequest( HttpRequest const &request,
+                                               HttpResponse *response ) = 0;
+
+    virtual bool error404( const HttpRequest &request, HttpResponse *response )
+        = 0;
+
+    virtual std::shared_ptr<HttpServerBlob>
+        getHttpFileHeaders( HttpRequest const &request, HttpResponse *response )
+        = 0;
+
+    virtual void removeApsClient( ApsClient *aps_client ) = 0;
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
