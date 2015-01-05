@@ -182,6 +182,11 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
     {
         r = m_network_service->error404( request, &response );
     }
+
+    if( r )
+    {
+        m_aps_client->sendHttpResponse(response);
+    }
     return r;
 }
 
@@ -196,7 +201,15 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpHeadRequest(
     {
         r = true;
     }
+    if ( r == false )
+    {
+        r = m_network_service->error404( request, &response );
+    }
 
+    if( r )
+    {
+        m_aps_client->sendHttpResponse(response);
+    }
     return r;
 }
 
@@ -210,7 +223,15 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpPostRequest(
     {
         r = true;
     }
+    if ( r == false )
+    {
+        r = m_network_service->error404( request, &response );
+    }
 
+    if( r )
+    {
+        m_aps_client->sendHttpResponse(response);
+    }
     return r;
 }
 }
