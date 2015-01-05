@@ -175,7 +175,7 @@ void NetworkService::stop()
 
 void NetworkService::onNewConnection()
 {
-    uv_tcp_t *client = (uv_tcp_t *)malloc( sizeof( uv_tcp_t ) );
+    uv_tcp_t *client = new uv_tcp_t;
     uv_tcp_init( m_uv_loop, client );
 
     if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
@@ -195,12 +195,20 @@ void NetworkService::onNewConnection()
         }
         else
         {
-            uv_close( (uv_handle_t *)client, NULL );
+            uv_close( (uv_handle_t *)client,
+                      []( uv_handle_t *handle )
+                      {
+                delete handle;
+            } );
         }
     }
     else
     {
-        uv_close( (uv_handle_t *)client, NULL );
+        uv_close( (uv_handle_t *)client,
+                  []( uv_handle_t *handle )
+                  {
+            delete handle;
+        } );
     }
 }
 

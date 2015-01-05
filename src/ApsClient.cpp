@@ -72,7 +72,22 @@ void ApsClient::start()
     run();
 }
 
-void ApsClient::stop() { m_owner->removeApsClient( this ); }
+void ApsClient::stop()
+{
+    if ( m_tcp )
+    {
+        uv_close( (uv_handle_t *)m_tcp,
+                  []( uv_handle_t *handle )
+                  {
+            delete handle;
+        } );
+    }
+    m_my_states.clear();
+    m_my_actions.clear();
+    m_my_events.clear();
+
+    m_owner->removeApsClient( this );
+}
 
 void ApsClient::sendAvdeccToL2( Frame const &frame )
 {
@@ -149,6 +164,8 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
             ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
             self->closeTcpConnection();
             self->run();
+            delete self->m_tcp;
+            self->m_tcp = 0;
             self->stop();
         } );
     } );
@@ -183,9 +200,9 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
         r = m_network_service->error404( request, &response );
     }
 
-    if( r )
+    if ( r )
     {
-        m_aps_client->sendHttpResponse(response);
+        m_aps_client->sendHttpResponse( response );
     }
     return r;
 }
@@ -206,9 +223,9 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpHeadRequest(
         r = m_network_service->error404( request, &response );
     }
 
-    if( r )
+    if ( r )
     {
-        m_aps_client->sendHttpResponse(response);
+        m_aps_client->sendHttpResponse( response );
     }
     return r;
 }
@@ -228,9 +245,9 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpPostRequest(
         r = m_network_service->error404( request, &response );
     }
 
-    if( r )
+    if ( r )
     {
-        m_aps_client->sendHttpResponse(response);
+        m_aps_client->sendHttpResponse( response );
     }
     return r;
 }
