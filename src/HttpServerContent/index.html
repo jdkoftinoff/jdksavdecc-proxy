@@ -4,10 +4,12 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="theme.css">
     <title>JDKSAvdeccProxy</title>
+    
 </head>
 <body>
     <header>
-        <h1>AVDECC Proxy</h1>
+        <img id="logo" src="logo.png">
+        <p>AVDECC Proxy</p> 
     </header>
     <nav>
         <ul>
@@ -18,17 +20,39 @@
     </nav>
     <main>
         <section id="about" >
-            <h2>About</h2>
+            <h1>About</h1>
             <p>...about...</p>
         </section>
         <section id="status" hidden>
-            <h2>Status</h2>
+            <h1>Status</h1>
             <p>...status...</p>
         </section>
         <section id="configuration" hidden>
-            <h2>Configuration</h2>
+            <h1>Configuration</h1>
             <p>...configuration...</p>
         </section>
     </main>
     <footer> <a href="https://avb.statusbar.com/">Copyright 2015 By J.D. Koftinoff Software, Ltd.</a> </footer>
 </body>
+
+<script>
+    function about_clicked() {
+        document.querySelector("#about").hidden=false;
+        document.querySelector("#status").hidden=true;
+        document.querySelector("#configuration").hidden=true;
+    }
+    function status_clicked() {
+        document.querySelector("#about").hidden=true;
+        document.querySelector("#status").hidden=false;
+        document.querySelector("#configuration").hidden=true;
+    }
+    function configuration_clicked() {
+        document.querySelector("#about").hidden=true;
+        document.querySelector("#status").hidden=true;
+        document.querySelector("#configuration").hidden=false;
+    }    
+    document.querySelector("#navabout").addEventListener("click",about_clicked );
+    document.querySelector("#navstatus").addEventListener("click",status_clicked );
+    document.querySelector("#navconfiguration").addEventListener("click",configuration_clicked );
+</script>
+

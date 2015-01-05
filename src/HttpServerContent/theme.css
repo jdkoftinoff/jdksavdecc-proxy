@@ -1,22 +1,32 @@
 body {
 	background-color: #EBE8E4;
 	color: #222;
-	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-family: "Helvetica", "Arial", "Lucida Grande", "sans-serif";
 	font-weight: 300;
 	font-size: 15px;
 }
-
 
 header {
     background-color: #ffffff;
     color: #000;
     border: 1px solid #555555;
-    display: block;
     margin: 0em 0em 0em 0em;
     padding: 0em 1em 0em 1em;
 	overflow: hidden;
-	width: 95%; 
+	width: 95%;
 }
+
+header > p {
+    font-size: 2em;
+    text-align: center;
+}
+
+header img#logo {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+}
+
 
 nav {
     background-color: #ffffff;
