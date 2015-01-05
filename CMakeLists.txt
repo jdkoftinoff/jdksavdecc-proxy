@@ -9,7 +9,6 @@ add_subdirectory("jdksavdecc-mcu")
 add_subdirectory("Obbligato")
 add_subdirectory("http-parser")
 
-
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo
@@ -28,6 +27,10 @@ include_directories(
 
 set(LIBS ${LIBS} jdksavdecc-proxy Obbligato http-parser jdksavdecc-mcu uv)
 
+IF (APPLE)
+   FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
+ENDIF (APPLE)
+
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
    set( LIBS ${LIBS} m rt )
 endif()
@@ -37,8 +40,9 @@ if( WIN32 )
     set(LIBS ${LIBS} wpcap psapi)
     link_directories($ENV{PCAP_LIBRARY})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    set(LIBS ${LIBS} pcap)
+    set(LIBS ${LIBS} pcap ${COREFOUNDATIION_LIBRARY})
 endif()
+
 
 INCLUDE (common.cmake)
 
