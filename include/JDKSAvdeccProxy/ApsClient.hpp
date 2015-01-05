@@ -96,6 +96,8 @@ class ApsClient : public ApsStateMachine
         virtual bool
             onIncomingHttpFileHeadRequest( HttpRequest const &request );
 
+        virtual bool error404( HttpRequest const &request );
+
         virtual std::shared_ptr<HttpServerBlob>
             getHttpFileHeaders( HttpRequest const &request,
                                 HttpResponse *response );

@@ -57,8 +57,12 @@ void ApsClient::start()
             }
             else
             {
-                self->onIncomingTcpData(
-                    reinterpret_cast<uint8_t *>( buf->base ), nread );
+                if ( self->onIncomingTcpData(
+                         reinterpret_cast<uint8_t *>( buf->base ), nread )
+                     == 0 )
+                {
+                    self->onTcpConnectionClosed();
+                }
                 self->run();
             }
         } );
@@ -170,6 +174,11 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpGetRequest(
     {
         r = true;
     }
+
+    if ( r == false )
+    {
+        r = error404( request );
+    }
     return r;
 }
 
@@ -232,6 +241,32 @@ bool ApsClient::StateEventsWithWebServing::onIncomingHttpFileHeadRequest(
         r = true;
     }
     return r;
+}
+
+bool
+    ApsClient::StateEventsWithWebServing::error404( const HttpRequest &request )
+{
+    using ::Obbligato::formstring;
+
+    HttpResponse response;
+
+    response.setContent(
+        "<DOCTYPE html><html lang=\"en\"><h1>Not Found</h1></html>" );
+
+    response.addHeader( "Connection", "Close" );
+
+    response.addHeader( "Content-Type", "text/html" );
+
+    response.addHeader(
+        formstring( "Content-Length", ": ", response.m_content.size() ) );
+
+    response.m_version = "HTTP/1.1";
+    response.m_status_code = "404";
+    response.m_reason_phrase = "Not Found";
+
+    m_aps_client->sendHttpResponse( response );
+
+    return true;
 }
 
 std::shared_ptr<HttpServerBlob>
