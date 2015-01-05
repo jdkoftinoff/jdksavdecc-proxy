@@ -39,7 +39,7 @@ namespace JDKSAvdeccProxy
 void ApsClient::start()
 {
     uv_read_start(
-        (uv_stream_t *)m_tcp,
+        (uv_stream_t *)&m_tcp,
         []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
         {
             ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
@@ -74,14 +74,6 @@ void ApsClient::start()
 
 void ApsClient::stop()
 {
-    if ( m_tcp )
-    {
-        uv_close( (uv_handle_t *)m_tcp,
-                  []( uv_handle_t *handle )
-                  {
-            delete handle;
-        } );
-    }
     m_my_states.clear();
     m_my_actions.clear();
     m_my_events.clear();
@@ -115,7 +107,7 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
     write_req->data = this;
 
     uv_write( write_req,
-              (uv_stream_t *)m_tcp,
+              (uv_stream_t *)&m_tcp,
               &buf,
               1,
               []( uv_write_t *write_req, int status )
@@ -147,7 +139,7 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
     write_req->data = this;
 
     uv_write( write_req,
-              (uv_stream_t *)m_tcp,
+              (uv_stream_t *)&m_tcp,
               &buf,
               1,
               []( uv_write_t *write_req, int status )
@@ -158,14 +150,12 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
         delete[] data;
         delete write_req;
 
-        uv_close( (uv_handle_t *)self->m_tcp,
+        uv_close( (uv_handle_t *)&self->m_tcp,
                   []( uv_handle_t *handle )
                   {
             ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
             self->closeTcpConnection();
             self->run();
-            delete self->m_tcp;
-            self->m_tcp = 0;
             self->stop();
         } );
     } );

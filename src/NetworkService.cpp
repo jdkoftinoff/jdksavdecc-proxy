@@ -175,40 +175,27 @@ void NetworkService::stop()
 
 void NetworkService::onNewConnection()
 {
-    uv_tcp_t *client = new uv_tcp_t;
-    uv_tcp_init( m_uv_loop, client );
-
-    if ( uv_accept( (uv_stream_t *)&m_tcp_server, (uv_stream_t *)client ) == 0 )
+    if ( m_available_client_handlers.size() > 0 )
     {
-        if ( m_available_client_handlers.size() > 0 )
+        auto aps = m_available_client_handlers.back();
+
+        uv_tcp_init( m_uv_loop, aps->getTcp() );
+        aps->getTcp()->data = (void *)aps.get();
+
+        if ( uv_accept( (uv_stream_t *)&m_tcp_server,
+                        (uv_stream_t *)aps->getTcp() ) == 0 )
         {
-            auto aps = m_available_client_handlers.back();
             m_available_client_handlers.pop_back();
-            // TODO:
-            // aps->setLinkMac( m_raw_network_handler.getMac() );
+
             aps->setup();
-            client->data = (void *)aps.get();
-            aps->setTcp( client );
             aps->start();
             m_active_client_handlers.push_back( aps );
             aps->run();
         }
         else
         {
-            uv_close( (uv_handle_t *)client,
-                      []( uv_handle_t *handle )
-                      {
-                delete handle;
-            } );
+            uv_close( (uv_handle_t *)aps->getTcp(), 0 );
         }
-    }
-    else
-    {
-        uv_close( (uv_handle_t *)client,
-                  []( uv_handle_t *handle )
-                  {
-            delete handle;
-        } );
     }
 }
 
