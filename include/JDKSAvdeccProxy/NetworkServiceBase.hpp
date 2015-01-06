@@ -37,6 +37,7 @@ namespace JDKSAvdeccProxy
 {
 
 class ApsClient;
+class RawNetworkHandler;
 
 class NetworkServiceBase
 {
@@ -89,6 +90,12 @@ class NetworkServiceBase
         = 0;
 
     virtual void removeApsClient( ApsClient *aps_client ) = 0;
+
+    virtual void addRawNetwork( std::string const &name,
+                                std::shared_ptr<RawNetworkHandler> handler )
+        = 0;
+
+    virtual void removeRawNetwork( std::string const &name ) = 0;
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service

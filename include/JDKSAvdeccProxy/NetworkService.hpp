@@ -145,6 +145,11 @@ class NetworkService : public NetworkServiceBase
         getHttpFileHeaders( HttpRequest const &request,
                             HttpResponse *response );
 
+    virtual void addRawNetwork( std::string const &name,
+                                std::shared_ptr<RawNetworkHandler> handler );
+
+    virtual void removeRawNetwork( std::string const &name );
+
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
     /// \return uv_loop_t pointer
@@ -163,7 +168,8 @@ class NetworkService : public NetworkServiceBase
 
     std::vector<std::shared_ptr<ApsClient>> m_active_client_handlers;
     std::vector<std::shared_ptr<ApsClient>> m_available_client_handlers;
-    RawNetworkHandler m_raw_network_handler;
     HttpServerFiles const &m_builtin_files;
+
+    std::map<std::string, std::shared_ptr<RawNetworkHandler>> m_raw_networks;
 };
 }

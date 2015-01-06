@@ -76,7 +76,6 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     , m_num_clients_created( 0 )
     , m_assigned_id_count( 0 )
     , m_active_ids()
-    , m_raw_network_handler( this, uv_loop )
     , m_builtin_files( server_files )
 {
     for ( int i = 0; i < settings.m_max_clients; ++i )
@@ -224,6 +223,13 @@ void NetworkService::onTick()
         ( *i )->onTimeTick( time_in_seconds );
         ( *i )->run();
     }
+
+    // Notify all raw networks about time
+
+    for ( auto i = m_raw_networks.begin(); i != m_raw_networks.end(); ++i )
+    {
+        i->second->onTimeTick( time_in_seconds );
+    }
 }
 
 void NetworkService::sendAvdeccToL2( ApsClient *from, Frame const &frame )
@@ -298,6 +304,17 @@ std::shared_ptr<HttpServerBlob>
     }
 
     return i;
+}
+
+void NetworkService::addRawNetwork( const std::string &name,
+                                    std::shared_ptr<RawNetworkHandler> handler )
+{
+    m_raw_networks[name] = handler;
+}
+
+void NetworkService::removeRawNetwork( const std::string &name )
+{
+    m_raw_networks.erase( name );
 }
 
 bool NetworkService::error404( const HttpRequest &request,

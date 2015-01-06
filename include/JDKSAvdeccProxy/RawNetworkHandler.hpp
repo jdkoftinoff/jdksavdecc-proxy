@@ -46,7 +46,9 @@ class NetworkService;
 class RawNetworkHandler
 {
   public:
-    RawNetworkHandler( NetworkService *owner, uv_loop_t *uv_loop );
+    RawNetworkHandler( NetworkService *owner,
+                       uv_loop_t *uv_loop,
+                       std::string const &device );
 
     virtual ~RawNetworkHandler();
 
@@ -95,6 +97,8 @@ class RawNetworkHandler
     ///
     virtual void onLinkChange( bool link_up );
 
+    virtual void onTimeTick( uint32_t time_in_seconds );
+
   protected:
     /// The owner of the Client Connection
     NetworkService *m_owner;
@@ -102,13 +106,20 @@ class RawNetworkHandler
     /// The libuv loop
     uv_loop_t *m_uv_loop;
 
-    /// The socket which conne
+    /// The socket for the incoming packet event
     uv_handle_t *m_uv_handle;
+
+    RawSocketDefault m_raw_socket;
+
+    /// The current link status
+    bool m_link_status;
 
     /// The buffer space for incoming messages
     std::deque<FrameWithMTU> m_incoming_avdecc_frames;
 
     /// The buffer space of outgoing messages
     std::deque<FrameWithMTU> m_outgoing_app_messages;
+
+    std::string m_device;
 };
 }

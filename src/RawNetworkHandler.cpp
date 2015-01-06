@@ -38,7 +38,14 @@ namespace JDKSAvdeccProxy
 {
 
 RawNetworkHandler::RawNetworkHandler( JDKSAvdeccProxy::NetworkService *owner,
-                                      uv_loop_t *uv_loop )
+                                      uv_loop_t *uv_loop,
+                                      std::string const &device )
+    : m_owner( owner )
+    , m_uv_loop( uv_loop )
+    , m_raw_socket( device.c_str(),
+                    JDKSAVDECC_AVTP_ETHERTYPE,
+                    Eui48( jdksavdecc_multicast_adp_acmp ) )
+    , m_device( device )
 {
 }
 
@@ -55,4 +62,6 @@ void RawNetworkHandler::onClientData( const Frame &frame ) {}
 void RawNetworkHandler::onSentData( uv_write_t *req, int status ) {}
 
 void RawNetworkHandler::onLinkChange( bool link_up ) {}
+
+void RawNetworkHandler::onTimeTick( uint32_t time_in_seconds ) {}
 }
