@@ -41,6 +41,7 @@ namespace HttpServerContentData
 
 void HttpServerContent::load()
 {
+    m_content.clear();
     std::shared_ptr<HttpServerBlob> index = std::make_shared<HttpServerBlob>(
         "text/html",
         HttpServerContentData::index_html,

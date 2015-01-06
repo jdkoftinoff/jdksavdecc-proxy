@@ -52,11 +52,13 @@ class ServiceController
 
     virtual std::string getVersion() const { return "0.4"; }
 
-    virtual bool init();
+    virtual void start();
     virtual bool run();
+    virtual void stop();
 
     NetworkService::Settings m_proxy_settings;
     HttpServerContent m_server_content;
     uv_loop_t *m_loop;
+    std::unique_ptr<NetworkService> m_service;
 };
 }

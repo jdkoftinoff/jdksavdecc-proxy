@@ -51,9 +51,11 @@ int main(int argc, const char **argv )
         throw std::runtime_error( "unable to parse settings" );
     }
 
-    if( controller.init() )
+    controller.start();
+    while( controller.run() )
     {
-        controller.run();
+        ;
     }
+    controller.stop();
 
 }

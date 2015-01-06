@@ -46,27 +46,20 @@ void ServiceController::addOptions( Obbligato::Config::OptionGroups &options,
     m_proxy_settings.addOptions( options, options_prefix + "avdecc_proxy" );
 }
 
-bool ServiceController::init()
+void ServiceController::start()
 {
-    bool r = true;
-
     setupServerFiles();
 
-    return r;
+    m_service = std::unique_ptr<NetworkService>(
+        new NetworkService( m_proxy_settings, m_server_content, m_loop ) );
+    m_service->start();
 }
 
 bool ServiceController::run()
 {
-    bool r = true;
-
     try
     {
-        NetworkService service( m_proxy_settings, m_server_content, m_loop );
-        service.start();
-
         uv_run( m_loop, UV_RUN_DEFAULT );
-
-        service.stop();
     }
     catch ( std::runtime_error const &e )
     {
@@ -80,8 +73,16 @@ bool ServiceController::run()
     {
         ob_log_error( "exception caught: ", e.what() );
     }
+    return false;
+}
 
-    return r;
+void ServiceController::stop()
+{
+    if ( m_service )
+    {
+        m_service->stop();
+        m_service.reset();
+    }
 }
 
 void ServiceController::setupServerFiles() { m_server_content.load(); }
