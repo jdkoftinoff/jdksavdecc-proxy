@@ -42,21 +42,23 @@ namespace JDKSAvdeccProxy
 class ServiceController
 {
   public:
-    ServiceController();
-    virtual ~ServiceController();
+    struct Settings
+    {
+        NetworkService::Settings m_proxy_settings;
+        virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
+                                 std::string const &options_prefix = "" );
+    };
 
-    virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                             std::string const &options_prefix = "" );
+    ServiceController( Settings const &settings, uv_loop_t *loop );
+    virtual ~ServiceController();
 
     virtual void setupServerFiles();
 
-    virtual std::string getVersion() const { return "0.4"; }
+    static std::string getVersion() { return "0.5"; }
 
-    virtual void start();
     virtual bool run();
-    virtual void stop();
 
-    NetworkService::Settings m_proxy_settings;
+    Settings const &m_settings;
     HttpServerContent m_server_content;
     uv_loop_t *m_loop;
     std::unique_ptr<NetworkService> m_service;

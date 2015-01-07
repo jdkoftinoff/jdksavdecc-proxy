@@ -39,23 +39,45 @@ int main(int argc, const char **argv )
     Obbligato::Config::OptionGroups option_groups;
     Obbligato::Logger::addOptions(option_groups,false);
 
-    JDKSAvdeccProxy::ServiceController controller;
-    controller.addOptions(option_groups);
+    JDKSAvdeccProxy::ServiceController::Settings settings;
+    settings.addOptions(option_groups);
 
-    if ( !option_groups.parse(
+    if ( option_groups.parse(
              argv + 1,
              "JDKSAvdeccProxyServer",
-             controller.getVersion(),
+             JDKSAvdeccProxy::ServiceController::getVersion(),
              std::cout ) )
     {
-        throw std::runtime_error( "unable to parse settings" );
-    }
+        JDKSAvdeccProxy::ServiceController controller(settings,uv_default_loop());
 
-    controller.start();
-    while( controller.run() )
-    {
-        ;
+        try
+        {
+            while( controller.run() )
+            {
+                ;
+            }
+        }
+        catch ( std::runtime_error const &e )
+        {
+            ob_log_error( "exception: runtime_error caught: ", e.what() );
+            throw;
+        }
+        catch ( std::logic_error const &e )
+        {
+            ob_log_error( "exception: logic_error caught: ", e.what() );
+            throw;
+        }
+        catch ( std::exception const &e )
+        {
+            ob_log_error( "exception caught: ", e.what() );
+            throw;
+        }
+        catch (...)
+        {
+            ob_log_error( "unknown exception caught" );
+            throw;
+        }
+
     }
-    controller.stop();
 
 }

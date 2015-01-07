@@ -36,30 +36,38 @@
 namespace JDKSAvdeccProxy
 {
 
-ServiceController::ServiceController() { m_loop = uv_default_loop(); }
-
-ServiceController::~ServiceController() {}
-
-void ServiceController::addOptions( Obbligato::Config::OptionGroups &options,
-                                    const std::string &options_prefix )
+void ServiceController::Settings::addOptions(
+    Obbligato::Config::OptionGroups &options,
+    const std::string &options_prefix )
 {
     m_proxy_settings.addOptions( options, options_prefix + "avdecc_proxy" );
 }
 
-void ServiceController::start()
+ServiceController::ServiceController( Settings const &settings,
+                                      uv_loop_t *loop )
+    : m_settings( settings ), m_loop( loop )
 {
     setupServerFiles();
 
-    m_service = std::unique_ptr<NetworkService>(
-        new NetworkService( m_proxy_settings, m_server_content, m_loop ) );
+    m_service = std::unique_ptr<NetworkService>( new NetworkService(
+        m_settings.m_proxy_settings, m_server_content, m_loop ) );
     m_service->start();
+}
+
+ServiceController::~ServiceController()
+{
+    if ( m_service )
+    {
+        m_service->stop();
+        m_service.reset();
+    }
 }
 
 bool ServiceController::run()
 {
     try
     {
-        uv_run( m_loop, UV_RUN_DEFAULT );
+        uv_run( m_loop, UV_RUN_ONCE );
     }
     catch ( std::runtime_error const &e )
     {
@@ -74,15 +82,6 @@ bool ServiceController::run()
         ob_log_error( "exception caught: ", e.what() );
     }
     return false;
-}
-
-void ServiceController::stop()
-{
-    if ( m_service )
-    {
-        m_service->stop();
-        m_service.reset();
-    }
 }
 
 void ServiceController::setupServerFiles() { m_server_content.load(); }
