@@ -4,10 +4,35 @@ project(${PROJECT} C CXX)
 
 set(CXX11 "ON")
 
-add_subdirectory("libuv")
-add_subdirectory("jdksavdecc-mcu")
-add_subdirectory("Obbligato")
-add_subdirectory("http-parser")
+option(JDKSAVDECC_PROXY_STANDALONE "JDKSAVDECC Proxy Standalone Build" "ON")
+
+if( JDKSAVDECC_PROXY_STANDALONE )
+
+    add_subdirectory("libuv")
+    add_subdirectory("jdksavdecc-mcu")
+    add_subdirectory("Obbligato")
+    add_subdirectory("http-parser")
+    include_directories(
+	"include"
+	"Obbligato/include"
+	"libuv/include"
+	"http-parser"
+	"jdksavdecc-mcu/include"
+	"jdksavdecc-mcu/jdksavdecc-c/include"
+    )
+
+else()
+
+    include_directories(
+	"include"
+	"../Obbligato/include"
+	"../libuv/include"
+	"../http-parser/http-parser"
+	"../jdksavdecc-mcu/include"
+	"../jdksavdecc-mcu/jdksavdecc-c/include"
+    )
+
+endif()
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
@@ -16,16 +41,7 @@ MinSizeRel."
        FORCE )
 endif()
 
-include_directories(
-    "include"
-    "http-parser"
-    "Obbligato/include"
-    "libuv/include"
-    "jdksavdecc-mcu/include"
-    "jdksavdecc-mcu/jdksavdecc-c/include"
-)
-
-set(LIBS ${LIBS} jdksavdecc-proxy Obbligato http-parser jdksavdecc-mcu uv)
+set(LIBS ${LIBS} jdksavdecc-proxy Obbligato jdksavdecc-mcu uv)
 
 IF (APPLE)
    FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
@@ -40,7 +56,7 @@ if( WIN32 )
     set(LIBS ${LIBS} wpcap psapi)
     link_directories($ENV{PCAP_LIBRARY})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    set(LIBS ${LIBS} pcap ${COREFOUNDATIION_LIBRARY})
+    set(LIBS ${LIBS} pcap ${COREFOUNDATION_LIBRARY})
 endif()
 
 
