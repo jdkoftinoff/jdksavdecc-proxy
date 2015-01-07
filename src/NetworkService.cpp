@@ -87,6 +87,10 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     // initialize the uv tcp server object
     uv_tcp_init( m_uv_loop, &m_tcp_server );
     m_tcp_server.data = this;
+
+    // add the cgi handlers
+    addCgiHandler( "/cgi-bin/status", std::make_shared<CgiStatus>( this ) );
+    addCgiHandler( "/cgi-bin/config", std::make_shared<CgiConfig>( this ) );
 }
 
 void NetworkService::start()
@@ -271,13 +275,25 @@ bool NetworkService::onIncomingHttpFileHeadRequest( const HttpRequest &request,
 bool NetworkService::onIncomingHttpCgiGetRequest( const HttpRequest &request,
                                                   HttpResponse *response )
 {
-    return false;
+    bool r = false;
+    std::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    if ( h )
+    {
+        r = h->onIncomingHttpGetRequest( request, response );
+    }
+    return r;
 }
 
 bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
                                                    HttpResponse *response )
 {
-    return false;
+    bool r = false;
+    std::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    if ( h )
+    {
+        r = h->onIncomingHttpPostRequest( request, response );
+    }
+    return r;
 }
 
 std::shared_ptr<HttpServerBlob>
@@ -355,4 +371,76 @@ void NetworkService::removeApsClient( ApsClient *client )
 }
 
 uv_loop_t *NetworkService::getLoop() { return m_uv_loop; }
+
+void NetworkService::addCgiHandler( const std::string &prefix,
+                                    std::shared_ptr<HttpServerCgi> handler )
+{
+    m_cgi_handlers[prefix] = handler;
+}
+
+std::shared_ptr<HttpServerCgi>
+    NetworkService::findCgiHandler( const std::string &path )
+{
+    std::string truncated_path;
+
+    ssize_t pos = path.find_first_of( '?' );
+    if ( pos > 0 )
+    {
+        truncated_path = path.substr( 0, pos );
+    }
+    else
+    {
+        truncated_path = path;
+    }
+    std::shared_ptr<HttpServerCgi> r;
+
+    auto i = m_cgi_handlers.find( truncated_path );
+    if ( i != m_cgi_handlers.end() )
+    {
+        r = i->second;
+    }
+    return r;
+}
+
+bool NetworkService::CgiStatus::onIncomingHttpGetRequest(
+    const HttpRequest &request, HttpResponse *response )
+{
+    response->addHeader( "Content-Type", "application/json" );
+    response->addHeader( "Content-Encoding", "utf-8" );
+    response->m_status_code = "200";
+    response->m_reason_phrase = "OK";
+    response->m_version = "HTTP/1.1";
+    response->setContent( "{ 1,2,3,4, name: 'a name' }" );
+    response->addHeader(
+        "Content-Length",
+        ::Obbligato::formstring( response->m_content.size() ) );
+    return true;
+}
+
+bool NetworkService::CgiStatus::onIncomingHttpPostRequest(
+    const HttpRequest &request, HttpResponse *response )
+{
+    return false;
+}
+
+bool NetworkService::CgiConfig::onIncomingHttpGetRequest(
+    const HttpRequest &request, HttpResponse *response )
+{
+    response->addHeader( "Content-Type", "application/json" );
+    response->addHeader( "Content-Encoding", "utf-8" );
+    response->m_status_code = "200";
+    response->m_reason_phrase = "OK";
+    response->m_version = "HTTP/1.1";
+    response->setContent( "{ 5,6,7,8, name: 'some name' }" );
+    response->addHeader(
+        "Content-Length",
+        ::Obbligato::formstring( response->m_content.size() ) );
+    return true;
+}
+
+bool NetworkService::CgiConfig::onIncomingHttpPostRequest(
+    const HttpRequest &request, HttpResponse *response )
+{
+    return false;
+}
 }

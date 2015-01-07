@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2014, J.D. Koftinoff Software, Ltd.
+  Copyright (c) 2015, J.D. Koftinoff Software, Ltd.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,21 @@
 */
 #pragma once
 
-#include "JDKSAvdeccMCU_World.hpp"
+#include "World.hpp"
 #include "HttpServerBlob.hpp"
-#include "HttpServerFiles.hpp"
-#include "HttpServerCgi.hpp"
-#include "HttpServerContent.hpp"
-#include "ApsClient.hpp"
-#include "NetworkServiceBase.hpp"
-#include "NetworkService.hpp"
-#include "RawNetworkHandler.hpp"
-#include "ServiceController.hpp"
 
 namespace JDKSAvdeccProxy
 {
+
+class HttpServerCgi
+{
+  public:
+    virtual ~HttpServerCgi() {}
+
+    virtual bool onIncomingHttpGetRequest( HttpRequest const &request,
+                                           HttpResponse *response );
+
+    virtual bool onIncomingHttpPostRequest( HttpRequest const &request,
+                                            HttpResponse *response );
+};
 }

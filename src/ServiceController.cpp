@@ -72,16 +72,19 @@ bool ServiceController::run()
     catch ( std::runtime_error const &e )
     {
         ob_log_error( "exception: runtime_error caught: ", e.what() );
+        return false;
     }
     catch ( std::logic_error const &e )
     {
         ob_log_error( "exception: logic_error caught: ", e.what() );
+        return false;
     }
     catch ( std::exception const &e )
     {
         ob_log_error( "exception caught: ", e.what() );
+        return false;
     }
-    return false;
+    return uv_loop_alive( m_loop );
 }
 
 void ServiceController::setupServerFiles() { m_server_content.load(); }

@@ -35,6 +35,7 @@
 #include "ApsClient.hpp"
 #include "RawNetworkHandler.hpp"
 #include "HttpServerFiles.hpp"
+#include "HttpServerCgi.hpp"
 
 namespace JDKSAvdeccProxy
 {
@@ -156,6 +157,41 @@ class NetworkService : public NetworkServiceBase
     ///
     virtual uv_loop_t *getLoop();
 
+    virtual void addCgiHandler( std::string const &prefix,
+                                std::shared_ptr<HttpServerCgi> handler );
+
+    std::shared_ptr<HttpServerCgi> findCgiHandler( std::string const &path );
+
+    class CgiStatus : public HttpServerCgi
+    {
+      public:
+        CgiStatus( NetworkServiceBase *owner ) : m_owner( owner ) {}
+
+        virtual bool onIncomingHttpGetRequest( HttpRequest const &request,
+                                               HttpResponse *response );
+
+        virtual bool onIncomingHttpPostRequest( HttpRequest const &request,
+                                                HttpResponse *response );
+
+      protected:
+        NetworkServiceBase *m_owner;
+    };
+
+    class CgiConfig : public HttpServerCgi
+    {
+      public:
+        CgiConfig( NetworkServiceBase *owner ) : m_owner( owner ) {}
+
+        virtual bool onIncomingHttpGetRequest( HttpRequest const &request,
+                                               HttpResponse *response );
+
+        virtual bool onIncomingHttpPostRequest( HttpRequest const &request,
+                                                HttpResponse *response );
+
+      protected:
+        NetworkServiceBase *m_owner;
+    };
+
   protected:
     Settings const &m_settings;
     uv_loop_t *m_uv_loop;
@@ -169,6 +205,7 @@ class NetworkService : public NetworkServiceBase
     std::vector<std::shared_ptr<ApsClient>> m_active_client_handlers;
     std::vector<std::shared_ptr<ApsClient>> m_available_client_handlers;
     HttpServerFiles const &m_builtin_files;
+    std::map<std::string, std::shared_ptr<HttpServerCgi>> m_cgi_handlers;
 
     std::map<std::string, std::shared_ptr<RawNetworkHandler>> m_raw_networks;
 };

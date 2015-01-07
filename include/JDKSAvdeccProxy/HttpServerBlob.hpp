@@ -60,36 +60,96 @@ class HttpServerBlob
     }
 #endif
 
-    HttpServerBlob() : m_mime_type(), m_content( 0 ), m_content_length( 0 ) {}
+    HttpServerBlob()
+        : m_mime_type()
+        , m_content( 0 )
+        , m_content_length( 0 )
+        , m_allocated( false )
+    {
+    }
 
     HttpServerBlob( std::string const &mime_type,
                     uint8_t const *content,
-                    size_t content_length )
+                    size_t content_length,
+                    bool allocated = false )
         : m_mime_type( mime_type )
-        , m_content( content )
+        , m_content( const_cast<uint8_t *>( content ) )
         , m_content_length( content_length )
+        , m_allocated( allocated )
     {
     }
 
     HttpServerBlob( const HttpServerBlob &other )
         : m_mime_type( other.m_mime_type )
-        , m_content( other.m_content )
-        , m_content_length( other.m_content_length )
+    {
+        if ( other.m_allocated )
+        {
+            m_allocated = true;
+            m_content = new uint8_t[other.m_content_length];
+            memcpy( m_content, other.m_content, other.m_content_length );
+        }
+        else
+        {
+            m_allocated = false;
+            m_content = other.m_content;
+        }
+        m_mime_type = other.m_mime_type;
+        m_content_length = other.m_content_length;
+    }
+
+    HttpServerBlob( std::string const &mime_type, std::string const &content )
+        : m_mime_type( mime_type )
+        , m_content( new uint8_t[content.length()] )
+        , m_content_length( content.length() )
+        , m_allocated( true )
+    {
+    }
+
+    HttpServerBlob( std::string const &mime_type,
+                    std::vector<uint8_t> const &content )
+        : m_mime_type( mime_type )
+        , m_content( new uint8_t[content.size()] )
+        , m_content_length( content.size() )
+        , m_allocated( true )
     {
     }
 
     HttpServerBlob &operator=( const HttpServerBlob &other )
     {
-        m_mime_type = other.m_mime_type;
-        m_content = other.m_content;
-        m_content_length = other.m_content_length;
+        if ( this != &other )
+        {
+            if ( m_allocated )
+            {
+                delete m_content;
+            }
+            if ( other.m_allocated )
+            {
+                m_allocated = true;
+                m_content = new uint8_t[other.m_content_length];
+                memcpy( m_content, other.m_content, other.m_content_length );
+            }
+            else
+            {
+                m_allocated = false;
+                m_content = other.m_content;
+            }
+            m_mime_type = other.m_mime_type;
+            m_content_length = other.m_content_length;
+        }
         return *this;
     }
 
-    virtual ~HttpServerBlob() {}
+    virtual ~HttpServerBlob()
+    {
+        if ( m_allocated )
+        {
+            delete m_content;
+        }
+    }
 
     std::string m_mime_type;
-    uint8_t const *m_content;
+    uint8_t *m_content;
     size_t m_content_length;
+    bool m_allocated;
 };
 }
