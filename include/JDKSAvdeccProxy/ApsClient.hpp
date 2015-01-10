@@ -111,5 +111,38 @@ class ApsClient : public ApsStateMachine
     uv_tcp_t m_tcp;
 
     std::array<char, 8192> m_incoming_buffer;
+
+  private:
+    static void onUvReadAllocate( uv_handle_t *handle,
+                                  size_t suggested_size,
+                                  uv_buf_t *buf );
+
+    static void
+        onUvRead( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf );
+
+    static void onUvWrite( uv_write_t *write_req, int status );
+
+    static void onUvWriteThenClose( uv_write_t *write_req, int status );
+
+    static void onUvClose( uv_handle_t *handle );
+
+    struct UvWriteContext
+    {
+        UvWriteContext( ApsClient *apsclient, uint8_t *data )
+            : m_apsclient( apsclient ), m_data( data )
+        {
+        }
+
+        UvWriteContext( ApsClient *apsclient, char *data )
+            : m_apsclient( apsclient )
+            , m_data( reinterpret_cast<uint8_t *>( data ) )
+        {
+        }
+
+        ~UvWriteContext() { delete[] m_data; }
+
+        ApsClient *m_apsclient;
+        uint8_t *m_data;
+    };
 };
 }

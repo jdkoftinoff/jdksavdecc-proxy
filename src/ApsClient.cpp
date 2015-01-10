@@ -36,36 +36,40 @@
 namespace JDKSAvdeccProxy
 {
 
+void ApsClient::onUvReadAllocate( uv_handle_t *handle,
+                                  size_t suggested_size,
+                                  uv_buf_t *buf )
+{
+    ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
+    buf->base = &self->m_incoming_buffer[0];
+    buf->len = self->m_incoming_buffer.size();
+}
+
+void ApsClient::onUvRead( uv_stream_t *stream,
+                          ssize_t nread,
+                          const uv_buf_t *buf )
+{
+    ApsClient *self = reinterpret_cast<ApsClient *>( stream->data );
+    if ( nread <= 0 )
+    {
+        self->onTcpConnectionClosed();
+        self->run();
+        self->stop();
+    }
+    else
+    {
+        if ( self->onIncomingTcpData( reinterpret_cast<uint8_t *>( buf->base ),
+                                      nread ) == 0 )
+        {
+            self->onTcpConnectionClosed();
+        }
+        self->run();
+    }
+}
+
 void ApsClient::start()
 {
-    uv_read_start(
-        (uv_stream_t *)&m_tcp,
-        []( uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf )
-        {
-            ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
-            buf->base = &self->m_incoming_buffer[0];
-            buf->len = self->m_incoming_buffer.size();
-        },
-        []( uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf )
-        {
-            ApsClient *self = reinterpret_cast<ApsClient *>( stream->data );
-            if ( nread <= 0 )
-            {
-                self->onTcpConnectionClosed();
-                self->run();
-                self->stop();
-            }
-            else
-            {
-                if ( self->onIncomingTcpData(
-                         reinterpret_cast<uint8_t *>( buf->base ), nread )
-                     == 0 )
-                {
-                    self->onTcpConnectionClosed();
-                }
-                self->run();
-            }
-        } );
+    uv_read_start( (uv_stream_t *)&m_tcp, onUvReadAllocate, onUvRead );
 
     run();
     onIncomingTcpConnection();
@@ -95,6 +99,22 @@ void ApsClient::closeTcpServer()
     // TODO:
 }
 
+void ApsClient::onUvWrite( uv_write_t *write_req, int status )
+{
+    UvWriteContext *write_context
+        = reinterpret_cast<UvWriteContext *>( write_req->data );
+
+    ApsClient *self = write_context->m_apsclient;
+
+    delete write_context;
+    delete write_req;
+    if ( status < 0 )
+    {
+        uv_close( (uv_handle_t *)&self->m_tcp, onUvClose );
+    }
+    self->run();
+}
+
 void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
 {
     ApsStateMachine::sendTcpData( data, len );
@@ -104,32 +124,29 @@ void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
     buf.len = len;
     memcpy( buf.base, data, len );
     uv_write_t *write_req = new uv_write_t;
-    write_req->data = this;
+    write_req->data = new UvWriteContext( this, buf.base );
 
-    uv_write( write_req,
-              (uv_stream_t *)&m_tcp,
-              &buf,
-              1,
-              []( uv_write_t *write_req, int status )
-              {
-        ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
-#ifdef _WIN32
-        // TODO: Free sent data on Win32
-#else
-                  uint8_t *data = reinterpret_cast<uint8_t *>(
-                      write_req->bufsml[0].base );
+    uv_write( write_req, (uv_stream_t *)&m_tcp, &buf, 1, onUvWrite );
+}
 
-                  delete[] data;
-#endif
-        delete[] data;
-        delete write_req;
-        if ( status < 0 )
-        {
-            self->closeTcpConnection();
-            self->stop();
-        }
-        self->run();
-    } );
+void ApsClient::onUvClose( uv_handle_t *handle )
+{
+    ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
+    self->closeTcpConnection();
+    self->run();
+    self->stop();
+}
+
+void ApsClient::onUvWriteThenClose( uv_write_t *write_req, int status )
+{
+    UvWriteContext *write_context
+        = reinterpret_cast<UvWriteContext *>( write_req->data );
+
+    ApsClient *self = write_context->m_apsclient;
+
+    delete write_context;
+    delete write_req;
+    uv_close( (uv_handle_t *)&self->m_tcp, onUvClose );
 }
 
 void ApsClient::sendHttpResponse( const HttpResponse &response )
@@ -142,39 +159,9 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
     buf.base = new char[buf.len];
     memcpy( buf.base, data_to_send.data(), buf.len );
     uv_write_t *write_req = new uv_write_t;
-    write_req->data = this;
+    write_req->data = new UvWriteContext( this, buf.base );
 
-    uv_write( write_req,
-              (uv_stream_t *)&m_tcp,
-              &buf,
-              1,
-              []( uv_write_t *write_req, int status )
-              {
-        ApsClient *self = reinterpret_cast<ApsClient *>( write_req->data );
-
-#ifdef _WIN32
-        uint8_t *data
-            = reinterpret_cast<uint8_t *>( write_req->write_buffer.base );
-
-        // TODO: Free sent data on Win32
-#else
-                  uint8_t *data = reinterpret_cast<uint8_t *>(
-                      write_req->bufsml[0].base );
-
-                  delete[] data;
-#endif
-
-        delete write_req;
-
-        uv_close( (uv_handle_t *)&self->m_tcp,
-                  []( uv_handle_t *handle )
-                  {
-            ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
-            self->closeTcpConnection();
-            self->run();
-            self->stop();
-        } );
-    } );
+    uv_write( write_req, (uv_stream_t *)&m_tcp, &buf, 1, onUvWriteThenClose );
 }
 
 ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
