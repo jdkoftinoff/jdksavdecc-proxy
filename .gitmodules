@@ -10,3 +10,6 @@
 [submodule "http-parser"]
 	path = http-parser
 	url = ../http-parser.git
+[submodule "uvrawpkt"]
+	path = uvrawpkt
+	url = ../uvrawpkt.git
