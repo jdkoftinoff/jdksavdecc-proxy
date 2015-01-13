@@ -50,9 +50,6 @@ IF (APPLE)
    FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
 ENDIF (APPLE)
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
-   set( LIBS ${LIBS} m rt )
-endif()
 
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
@@ -60,6 +57,8 @@ if( WIN32 )
     link_directories($ENV{PCAP_LIBRARY})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     set(LIBS ${LIBS} pcap ${COREFOUNDATION_LIBRARY})
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+   set( LIBS ${LIBS} pcap m rt )
 endif()
 
 
