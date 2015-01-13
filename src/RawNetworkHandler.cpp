@@ -37,17 +37,17 @@
 namespace JDKSAvdeccProxy
 {
 
-RawNetworkHandler::RawNetworkHandler( JDKSAvdeccProxy::NetworkService *owner,
+RawNetworkHandler::RawNetworkHandler( NetworkServiceBase *owner,
                                       uv_loop_t *uv_loop,
                                       std::string const &device )
     : m_owner( owner )
     , m_uv_loop( uv_loop )
+#if 0
     , m_raw_socket( device.c_str(),
                     JDKSAVDECC_AVTP_ETHERTYPE,
                     Eui48( jdksavdecc_multicast_adp_acmp ) )
-    , m_device( device )
-{
-}
+#endif
+    , m_device( device ) {}
 
 RawNetworkHandler::~RawNetworkHandler() {}
 

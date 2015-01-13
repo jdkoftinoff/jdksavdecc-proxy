@@ -84,6 +84,13 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
             this, m_assigned_id_count, m_active_ids, "/", server_files ) );
     }
 
+    if ( settings.m_avdecc_interface.length() > 0 )
+    {
+        m_raw_networks[settings.m_avdecc_interface]
+            = std::make_shared<RawNetworkHandler>(
+                this, uv_loop, settings.m_avdecc_interface );
+    }
+
     // initialize the uv tcp server object
     uv_tcp_init( m_uv_loop, &m_tcp_server );
     m_tcp_server.data = this;

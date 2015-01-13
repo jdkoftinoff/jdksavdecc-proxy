@@ -32,13 +32,12 @@
 
 #include "World.hpp"
 #include "NetworkServiceBase.hpp"
+#include "UvRawNetworkPort.hpp"
 
 namespace JDKSAvdeccProxy
 {
 
-class APCClientHandler;
 class RawNetworkHandler;
-class NetworkService;
 
 ///
 /// \brief The RawClientHandler class
@@ -46,7 +45,7 @@ class NetworkService;
 class RawNetworkHandler
 {
   public:
-    RawNetworkHandler( NetworkService *owner,
+    RawNetworkHandler( NetworkServiceBase *owner,
                        uv_loop_t *uv_loop,
                        std::string const &device );
 
@@ -101,15 +100,12 @@ class RawNetworkHandler
 
   protected:
     /// The owner of the Client Connection
-    NetworkService *m_owner;
+    NetworkServiceBase *m_owner;
 
     /// The libuv loop
     uv_loop_t *m_uv_loop;
 
-    /// The socket for the incoming packet event
-    uv_handle_t *m_uv_handle;
-
-    RawSocketDefault m_raw_socket;
+    // UvRawNetworkPort m_raw_socket;
 
     /// The current link status
     bool m_link_status;
