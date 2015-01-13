@@ -9,12 +9,14 @@ option(JDKSAVDECC_PROXY_STANDALONE "JDKSAVDECC Proxy Standalone Build" "ON")
 if( JDKSAVDECC_PROXY_STANDALONE )
 
     add_subdirectory("libuv")
+    add_subdirectory("uvrawpkt")
     add_subdirectory("jdksavdecc-mcu")
     add_subdirectory("Obbligato")
     add_subdirectory("http-parser")
     include_directories(
 	"include"
 	"Obbligato/include"
+	"uvrawpkt/include"
 	"libuv/include"
 	"http-parser"
 	"jdksavdecc-mcu/include"
@@ -26,6 +28,7 @@ else()
     include_directories(
 	"include"
 	"../Obbligato/include"
+	"../uvrawpkt/include"
 	"../libuv/include"
 	"../http-parser/http-parser"
 	"../jdksavdecc-mcu/include"
@@ -41,7 +44,7 @@ MinSizeRel."
        FORCE )
 endif()
 
-set(LIBS ${LIBS} jdksavdecc-proxy Obbligato jdksavdecc-mcu uv)
+set(LIBS ${LIBS} jdksavdecc-proxy Obbligato jdksavdecc-mcu uv uvrawpkt)
 
 IF (APPLE)
    FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
