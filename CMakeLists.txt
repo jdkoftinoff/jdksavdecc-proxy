@@ -46,17 +46,12 @@ endif()
 
 set(LIBS ${LIBS} jdksavdecc-proxy Obbligato jdksavdecc-mcu uv uvrawpkt)
 
-IF (APPLE)
-   FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
-ENDIF (APPLE)
-
-
 if( WIN32 )
     include_directories($ENV{PCAP_INCLUDE})
     set(LIBS ${LIBS} wpcap psapi)
     link_directories($ENV{PCAP_LIBRARY})
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-    set(LIBS ${LIBS} pcap ${COREFOUNDATION_LIBRARY})
+    set(LIBS ${LIBS} pcap )
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
    set( LIBS ${LIBS} pcap m rt )
 endif()
