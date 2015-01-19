@@ -226,7 +226,7 @@ void NetworkService::onTick()
     // Notify all ApsClients about time
     jdksavdecc_timestamp_in_microseconds ts
         = get_current_time_in_microseconds();
-    uint32_t time_in_seconds = ts / 1000000;
+    uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000);
     for ( auto i = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
