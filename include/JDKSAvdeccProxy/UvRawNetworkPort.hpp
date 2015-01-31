@@ -31,17 +31,17 @@
 #pragma once
 
 #include "World.hpp"
-//#include "uv-rawpkt.h"
+#include "uv-rawpkt.h"
 
 namespace JDKSAvdeccProxy
 {
 
-class UvRawNetworkPort
+class UvRawNetworks
 {
   public:
-    UvRawNetworkPort( uv_loop_t *uv_loop, const char *device_name );
+    UvRawNetworks( uv_loop_t *uv_loop );
 
-    virtual ~UvRawNetworkPort();
+    virtual ~UvRawNetworks();
 
     virtual void onIncomingFrame( Frame const &frame ) = 0;
 
@@ -59,21 +59,9 @@ class UvRawNetworkPort
 
   private:
     uv_loop_t *m_uv_loop;
-    // uv_rawpkt_t *m_uv_rawpkt;
+    uv_rawpkt_network_port_iterator_t *m_uv_network_port_iterator;
 
     std::deque<FrameWithMTU> m_outgoing_app_messages;
 };
 
-class UvMultiRawNetworkPort
-{
-  public:
-    UvMultiRawNetworkPort( uv_loop_t *uv_loop, const char *device_name );
-
-    virtual ~UvMultiRawNetworkPort();
-
-  private:
-    uv_loop_t *m_uv_loop;
-    // uv_rawpkt_iter_t *m_uv_rawpkt_iter;
-    std::map<std::string, std::shared_ptr<UvRawNetworkPort>> m_active_ports;
-};
 }
