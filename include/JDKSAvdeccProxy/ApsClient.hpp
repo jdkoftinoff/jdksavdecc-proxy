@@ -44,7 +44,7 @@ class ApsClient : public ApsStateMachine
     ApsClient( NetworkServiceBase *owner,
                uint16_t &assigned_id_count,
                active_connections_type &active_connections,
-               std::string const &path,
+               string const &path,
                HttpServerFiles const &http_server_files )
         : ApsStateMachine( &m_my_variables,
                            &m_my_actions,
@@ -78,7 +78,7 @@ class ApsClient : public ApsStateMachine
     {
       public:
         StateEventsWithWebServing( HttpServerParserSimple *parser,
-                                   std::string connect_path,
+                                   string connect_path,
                                    NetworkServiceBase *network_service );
 
         void setApsClient( ApsClient *aps_client )

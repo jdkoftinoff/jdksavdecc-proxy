@@ -56,12 +56,12 @@ class NetworkService : public NetworkServiceBase
     ///
     struct Settings : NetworkServiceBase::Settings
     {
-        std::string m_listen_host;
+        string m_listen_host;
         int m_listen_port;
-        std::string m_advertise_name;
+        string m_advertise_name;
         int32_t m_priority;
         bool m_advertise_mdns;
-        std::string m_avdecc_interface;
+        string m_avdecc_interface;
         int m_max_clients;
 
         ///
@@ -69,7 +69,7 @@ class NetworkService : public NetworkServiceBase
         /// \param options reference to OptionGroups to fill in
         ///
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                                 std::string const &options_prefix );
+                                 string const &options_prefix );
     };
 
     ///
@@ -142,15 +142,14 @@ class NetworkService : public NetworkServiceBase
 
     virtual bool error404( const HttpRequest &request, HttpResponse *response );
 
-    virtual Obbligato::shared_ptr<HttpServerBlob>
+    virtual shared_ptr<HttpServerBlob>
         getHttpFileHeaders( HttpRequest const &request,
                             HttpResponse *response );
 
-    virtual void
-        addRawNetwork( std::string const &name,
-                       Obbligato::shared_ptr<RawNetworkHandler> handler );
+    virtual void addRawNetwork( string const &name,
+                                shared_ptr<RawNetworkHandler> handler );
 
-    virtual void removeRawNetwork( std::string const &name );
+    virtual void removeRawNetwork( string const &name );
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service
@@ -158,11 +157,10 @@ class NetworkService : public NetworkServiceBase
     ///
     virtual uv_loop_t *getLoop();
 
-    virtual void addCgiHandler( std::string const &prefix,
-                                Obbligato::shared_ptr<HttpServerCgi> handler );
+    virtual void addCgiHandler( string const &prefix,
+                                shared_ptr<HttpServerCgi> handler );
 
-    Obbligato::shared_ptr<HttpServerCgi>
-        findCgiHandler( std::string const &path );
+    shared_ptr<HttpServerCgi> findCgiHandler( string const &path );
 
     class CgiStatus : public HttpServerCgi
     {
@@ -204,12 +202,15 @@ class NetworkService : public NetworkServiceBase
     uint16_t m_assigned_id_count;
     ApsClient::active_connections_type m_active_ids;
 
-    std::vector<Obbligato::shared_ptr<ApsClient> > m_active_client_handlers;
-    std::vector<Obbligato::shared_ptr<ApsClient> > m_available_client_handlers;
+    vector<shared_ptr<ApsClient> > m_active_client_handlers;
+    vector<shared_ptr<ApsClient> > m_available_client_handlers;
     HttpServerFiles const &m_builtin_files;
-    std::map<std::string, Obbligato::shared_ptr<HttpServerCgi> > m_cgi_handlers;
+    map<string, shared_ptr<HttpServerCgi> > m_cgi_handlers;
 
-    std::map<std::string, Obbligato::shared_ptr<RawNetworkHandler> >
-        m_raw_networks;
+    map<string, shared_ptr<RawNetworkHandler> > m_raw_networks;
+
+    static void listen_handler( uv_stream_t *server, int status );
+
+    static void tick_handler( uv_timer_t *timer );
 };
 }

@@ -151,7 +151,7 @@ void ApsClient::onUvWriteThenClose( uv_write_t *write_req, int status )
 
 void ApsClient::sendHttpResponse( const HttpResponse &response )
 {
-    std::vector<uint8_t> data_to_send;
+    vector<uint8_t> data_to_send;
     response.flatten( &data_to_send );
 
     uv_buf_t buf;
@@ -166,7 +166,7 @@ void ApsClient::sendHttpResponse( const HttpResponse &response )
 
 ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
     HttpServerParserSimple *parser,
-    std::string connect_path,
+    string connect_path,
     NetworkServiceBase *network_service )
     : StateEvents( parser, connect_path ), m_network_service( network_service )
 {

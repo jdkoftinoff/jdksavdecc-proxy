@@ -46,7 +46,7 @@ class ServiceController
     {
         NetworkService::Settings m_proxy_settings;
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                                 std::string const &options_prefix = "" );
+                                 string const &options_prefix = "" );
     };
 
     ServiceController( Settings const &settings, uv_loop_t *loop );
@@ -54,13 +54,13 @@ class ServiceController
 
     virtual void setupServerFiles();
 
-    static std::string getVersion() { return "0.5"; }
+    static string getVersion() { return "0.5"; }
 
     virtual bool run();
 
     Settings const &m_settings;
     HttpServerContent m_server_content;
     uv_loop_t *m_loop;
-    Obbligato::unique_ptr<NetworkService> m_service;
+    unique_ptr<NetworkService> m_service;
 };
 }

@@ -35,10 +35,23 @@
 
 namespace JDKSAvdeccProxy
 {
+void NetworkService::listen_handler( uv_stream_t *server, int status )
+{
+    if ( !status )
+    {
+        NetworkService *self = (NetworkService *)server->data;
+        self->onNewConnection();
+    }
+}
+
+void NetworkService::tick_handler( uv_timer_t *timer )
+{
+    NetworkService *self = (NetworkService *)timer->data;
+    self->onTick();
+}
 
 void NetworkService::Settings::addOptions(
-    ::Obbligato::Config::OptionGroups &options,
-    std::string const &options_prefix )
+    ::Obbligato::Config::OptionGroups &options, string const &options_prefix )
 {
     options.add( options_prefix.c_str(), "Avdecc Proxy Settings" )
         .add( "listen_host",
@@ -80,18 +93,18 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
 {
     for ( int i = 0; i < settings.m_max_clients; ++i )
     {
-        m_available_client_handlers.push_back( Obbligato::shared_ptr<ApsClient>(
-            new ApsClient( this,
-                           m_assigned_id_count,
-                           m_active_ids,
-                           "/",
-                           server_files ) ) );
+        m_available_client_handlers.push_back(
+            shared_ptr<ApsClient>( new ApsClient( this,
+                                                  m_assigned_id_count,
+                                                  m_active_ids,
+                                                  "/",
+                                                  server_files ) ) );
     }
 
     if ( settings.m_avdecc_interface.length() > 0 )
     {
         m_raw_networks[settings.m_avdecc_interface]
-            = Obbligato::shared_ptr<RawNetworkHandler>( new RawNetworkHandler(
+            = shared_ptr<RawNetworkHandler>( new RawNetworkHandler(
                 this, uv_loop, settings.m_avdecc_interface ) );
     }
 
@@ -101,25 +114,10 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
 
     // add the cgi handlers
     addCgiHandler( "/cgi-bin/status",
-                   Obbligato::shared_ptr<CgiStatus>( new CgiStatus( this ) ) );
+                   shared_ptr<CgiStatus>( new CgiStatus( this ) ) );
 
     addCgiHandler( "/cgi-bin/config",
-                   Obbligato::shared_ptr<CgiConfig>( new CgiConfig( this ) ) );
-}
-
-static void listen_handler( uv_stream_t *server, int status )
-{
-    if ( !status )
-    {
-        NetworkService *self = (NetworkService *)server->data;
-        self->onNewConnection();
-    }
-}
-
-static void tick_handler( uv_timer_t *timer )
-{
-    NetworkService *self = (NetworkService *)timer->data;
-    self->onTick();
+                   shared_ptr<CgiConfig>( new CgiConfig( this ) ) );
 }
 
 void NetworkService::start()
@@ -160,13 +158,13 @@ void NetworkService::start()
     // if we got some sort of error, log it and throw
     if ( r )
     {
-        throw std::runtime_error( ::Obbligato::formstring(
-            "NetworkService::startService() error listening to: ",
-            m_settings.m_listen_host,
-            ":",
-            m_settings.m_listen_port,
-            " : ",
-            uv_err_name( r ) ) );
+        throw runtime_error(
+            formstring( "NetworkService::startService() error listening to: ",
+                        m_settings.m_listen_host,
+                        ":",
+                        m_settings.m_listen_port,
+                        " : ",
+                        uv_err_name( r ) ) );
     }
 
     // create a single 250 ms timer for updating state machines
@@ -182,7 +180,7 @@ void NetworkService::stop()
 
     while ( m_active_client_handlers.size() > 0 )
     {
-        Obbligato::shared_ptr<ApsClient> aps = m_active_client_handlers.back();
+        shared_ptr<ApsClient> aps = m_active_client_handlers.back();
         aps->stop();
         m_available_client_handlers.push_back( aps );
         m_active_client_handlers.pop_back();
@@ -193,8 +191,7 @@ void NetworkService::onNewConnection()
 {
     if ( m_available_client_handlers.size() > 0 )
     {
-        Obbligato::shared_ptr<ApsClient> aps
-            = m_available_client_handlers.back();
+        shared_ptr<ApsClient> aps = m_available_client_handlers.back();
 
         uv_tcp_init( m_uv_loop, aps->getTcp() );
         aps->getTcp()->data = (void *)aps.get();
@@ -234,7 +231,7 @@ void NetworkService::onTick()
     jdksavdecc_timestamp_in_microseconds ts
         = get_current_time_in_microseconds();
     uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000 );
-    for ( std::vector<Obbligato::shared_ptr<ApsClient> >::iterator i
+    for ( vector<shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -245,8 +242,7 @@ void NetworkService::onTick()
 
     // Notify all raw networks about time
 
-    for ( std::map<std::string,
-                   Obbligato::shared_ptr<RawNetworkHandler> >::iterator i
+    for ( map<string, shared_ptr<RawNetworkHandler> >::iterator i
           = m_raw_networks.begin();
           i != m_raw_networks.end();
           ++i )
@@ -265,7 +261,7 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
 {
     bool r = false;
 
-    Obbligato::shared_ptr<HttpServerBlob> content
+    shared_ptr<HttpServerBlob> content
         = getHttpFileHeaders( request, response );
 
     if ( content )
@@ -296,7 +292,7 @@ bool NetworkService::onIncomingHttpCgiGetRequest( const HttpRequest &request,
                                                   HttpResponse *response )
 {
     bool r = false;
-    Obbligato::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
     if ( h )
     {
         r = h->onIncomingHttpGetRequest( request, response );
@@ -308,7 +304,7 @@ bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
                                                    HttpResponse *response )
 {
     bool r = false;
-    Obbligato::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
     if ( h )
     {
         r = h->onIncomingHttpPostRequest( request, response );
@@ -316,22 +312,21 @@ bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
     return r;
 }
 
-Obbligato::shared_ptr<HttpServerBlob>
+shared_ptr<HttpServerBlob>
     NetworkService::getHttpFileHeaders( const HttpRequest &request,
                                         HttpResponse *response )
 {
-    Obbligato::shared_ptr<HttpServerBlob> i
-        = m_builtin_files.find( request.m_path );
+    shared_ptr<HttpServerBlob> i = m_builtin_files.find( request.m_path );
 
     if ( i && i->m_content )
     {
         response->m_headers.push_back( "Connection: Close" );
 
         response->m_headers.push_back(
-            Obbligato::formstring( "Content-Type: ", i->m_mime_type ) );
+            formstring( "Content-Type: ", i->m_mime_type ) );
 
         response->m_headers.push_back(
-            Obbligato::formstring( "Content-Length: ", i->m_content_length ) );
+            formstring( "Content-Length: ", i->m_content_length ) );
 
         response->m_version = "HTTP/1.1";
         response->m_status_code = "200";
@@ -341,13 +336,13 @@ Obbligato::shared_ptr<HttpServerBlob>
     return i;
 }
 
-void NetworkService::addRawNetwork(
-    const std::string &name, Obbligato::shared_ptr<RawNetworkHandler> handler )
+void NetworkService::addRawNetwork( const string &name,
+                                    shared_ptr<RawNetworkHandler> handler )
 {
     m_raw_networks[name] = handler;
 }
 
-void NetworkService::removeRawNetwork( const std::string &name )
+void NetworkService::removeRawNetwork( const string &name )
 {
     m_raw_networks.erase( name );
 }
@@ -362,8 +357,8 @@ bool NetworkService::error404( const HttpRequest &request,
 
     response->addHeader( "Content-Type", "text/html" );
 
-    response->addHeader( Obbligato::formstring(
-        "Content-Length", ": ", response->m_content.size() ) );
+    response->addHeader(
+        formstring( "Content-Length", ": ", response->m_content.size() ) );
 
     response->m_version = "HTTP/1.1";
     response->m_status_code = "404";
@@ -374,7 +369,7 @@ bool NetworkService::error404( const HttpRequest &request,
 
 void NetworkService::removeApsClient( ApsClient *client )
 {
-    for ( std::vector<Obbligato::shared_ptr<ApsClient> >::iterator i
+    for ( vector<shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -390,16 +385,15 @@ void NetworkService::removeApsClient( ApsClient *client )
 
 uv_loop_t *NetworkService::getLoop() { return m_uv_loop; }
 
-void NetworkService::addCgiHandler(
-    const std::string &prefix, Obbligato::shared_ptr<HttpServerCgi> handler )
+void NetworkService::addCgiHandler( const string &prefix,
+                                    shared_ptr<HttpServerCgi> handler )
 {
     m_cgi_handlers[prefix] = handler;
 }
 
-Obbligato::shared_ptr<HttpServerCgi>
-    NetworkService::findCgiHandler( const std::string &path )
+shared_ptr<HttpServerCgi> NetworkService::findCgiHandler( const string &path )
 {
-    std::string truncated_path;
+    string truncated_path;
 
     ssize_t pos = path.find_first_of( '?' );
     if ( pos > 0 )
@@ -410,9 +404,9 @@ Obbligato::shared_ptr<HttpServerCgi>
     {
         truncated_path = path;
     }
-    Obbligato::shared_ptr<HttpServerCgi> r;
+    shared_ptr<HttpServerCgi> r;
 
-    std::map<std::string, Obbligato::shared_ptr<HttpServerCgi> >::iterator i
+    map<string, shared_ptr<HttpServerCgi> >::iterator i
         = m_cgi_handlers.find( truncated_path );
     if ( i != m_cgi_handlers.end() )
     {
@@ -430,9 +424,8 @@ bool NetworkService::CgiStatus::onIncomingHttpGetRequest(
     response->m_reason_phrase = "OK";
     response->m_version = "HTTP/1.1";
     response->setContent( "{ 1,2,3,4, name: 'a name' }" );
-    response->addHeader(
-        "Content-Length",
-        ::Obbligato::formstring( response->m_content.size() ) );
+    response->addHeader( "Content-Length",
+                         formstring( response->m_content.size() ) );
     return true;
 }
 
@@ -451,9 +444,8 @@ bool NetworkService::CgiConfig::onIncomingHttpGetRequest(
     response->m_reason_phrase = "OK";
     response->m_version = "HTTP/1.1";
     response->setContent( "{ 5,6,7,8, name: 'some name' }" );
-    response->addHeader(
-        "Content-Length",
-        ::Obbligato::formstring( response->m_content.size() ) );
+    response->addHeader( "Content-Length",
+                         formstring( response->m_content.size() ) );
     return true;
 }
 

@@ -39,18 +39,18 @@ class HttpServerBlob
 {
   public:
 #if 0
-    static inline std::vector<uint8_t> load( std::string const &fname )
+    static inline vector<uint8_t> load( string const &fname )
     {
-        std::vector<uint8_t> r;
-        std::ifstream f( fname, std::ios::binary | std::ios::in );
-        f.seekg( 0, std::ios::end );
+        vector<uint8_t> r;
+        ifstream f( fname, ios::binary | ios::in );
+        f.seekg( 0, ios::end );
         r.resize( f.tellg() );
         f.read( (char *)r.data(), r.size() );
         return r;
     }
 
 
-    HttpServerBlob( std::string const &mime_type, std::string const &content )
+    HttpServerBlob( string const &mime_type, string const &content )
         : m_mime_type( mime_type ), m_content( content.length() )
     {
         for ( size_t i = 0; i < content.length(); ++i )
@@ -68,7 +68,7 @@ class HttpServerBlob
     {
     }
 
-    HttpServerBlob( std::string const &mime_type,
+    HttpServerBlob( string const &mime_type,
                     uint8_t const *content,
                     size_t content_length,
                     bool allocated = false )
@@ -97,7 +97,7 @@ class HttpServerBlob
         m_content_length = other.m_content_length;
     }
 
-    HttpServerBlob( std::string const &mime_type, std::string const &content )
+    HttpServerBlob( string const &mime_type, string const &content )
         : m_mime_type( mime_type )
         , m_content( new uint8_t[content.length()] )
         , m_content_length( content.length() )
@@ -105,8 +105,7 @@ class HttpServerBlob
     {
     }
 
-    HttpServerBlob( std::string const &mime_type,
-                    std::vector<uint8_t> const &content )
+    HttpServerBlob( string const &mime_type, vector<uint8_t> const &content )
         : m_mime_type( mime_type )
         , m_content( new uint8_t[content.size()] )
         , m_content_length( content.size() )
@@ -147,7 +146,7 @@ class HttpServerBlob
         }
     }
 
-    std::string m_mime_type;
+    string m_mime_type;
     uint8_t *m_content;
     size_t m_content_length;
     bool m_allocated;

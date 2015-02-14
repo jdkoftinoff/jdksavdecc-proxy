@@ -37,8 +37,7 @@ namespace JDKSAvdeccProxy
 {
 
 void ServiceController::Settings::addOptions(
-    Obbligato::Config::OptionGroups &options,
-    const std::string &options_prefix )
+    Obbligato::Config::OptionGroups &options, const string &options_prefix )
 {
     m_proxy_settings.addOptions( options, options_prefix + "avdecc_proxy" );
 }
@@ -49,7 +48,7 @@ ServiceController::ServiceController( Settings const &settings,
 {
     setupServerFiles();
 
-    m_service.reset ( new NetworkService(
+    m_service.reset( new NetworkService(
         m_settings.m_proxy_settings, m_server_content, m_loop ) );
     m_service->start();
 }
@@ -69,17 +68,17 @@ bool ServiceController::run()
     {
         uv_run( m_loop, UV_RUN_ONCE );
     }
-    catch ( std::runtime_error const &e )
+    catch ( runtime_error const &e )
     {
         ob_log_error( "exception: runtime_error caught: ", e.what() );
         return false;
     }
-    catch ( std::logic_error const &e )
+    catch ( logic_error const &e )
     {
         ob_log_error( "exception: logic_error caught: ", e.what() );
         return false;
     }
-    catch ( std::exception const &e )
+    catch ( exception const &e )
     {
         ob_log_error( "exception caught: ", e.what() );
         return false;

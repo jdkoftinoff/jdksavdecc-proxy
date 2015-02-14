@@ -39,7 +39,7 @@ namespace JDKSAvdeccProxy
 
 RawNetworkHandler::RawNetworkHandler( NetworkServiceBase *owner,
                                       uv_loop_t *uv_loop,
-                                      std::string const &device )
+                                      string const &device )
     : m_owner( owner )
     , m_uv_loop( uv_loop )
 #if 0

@@ -61,6 +61,6 @@ class UvRawNetworks
     uv_loop_t *m_uv_loop;
     uv_rawpkt_network_port_iterator_t *m_uv_network_port_iterator;
 
-    std::deque<FrameWithMTU> m_outgoing_app_messages;
+    deque<FrameWithMTU> m_outgoing_app_messages;
 };
 }

@@ -52,7 +52,7 @@ class NetworkServiceBase
         /// \param options reference to OptionGroups to fill in
         ///
         virtual void addOptions( ::Obbligato::Config::OptionGroups &options,
-                                 std::string const &options_prefix ) = 0;
+                                 string const &options_prefix ) = 0;
     };
 
     ///
@@ -85,17 +85,16 @@ class NetworkServiceBase
     virtual bool error404( const HttpRequest &request, HttpResponse *response )
         = 0;
 
-    virtual Obbligato::shared_ptr<HttpServerBlob>
+    virtual shared_ptr<HttpServerBlob>
         getHttpFileHeaders( HttpRequest const &request, HttpResponse *response )
         = 0;
 
     virtual void removeApsClient( ApsClient *aps_client ) = 0;
 
-    virtual void
-        addRawNetwork( std::string const &name,
-                       Obbligato::shared_ptr<RawNetworkHandler> handler ) = 0;
+    virtual void addRawNetwork( string const &name,
+                                shared_ptr<RawNetworkHandler> handler ) = 0;
 
-    virtual void removeRawNetwork( std::string const &name ) = 0;
+    virtual void removeRawNetwork( string const &name ) = 0;
 
     ///
     /// \brief getLoop get the libuv uv_loop_t for this service

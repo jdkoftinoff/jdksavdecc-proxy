@@ -47,7 +47,7 @@ class RawNetworkHandler
   public:
     RawNetworkHandler( NetworkServiceBase *owner,
                        uv_loop_t *uv_loop,
-                       std::string const &device );
+                       string const &device );
 
     virtual ~RawNetworkHandler();
 
@@ -111,11 +111,11 @@ class RawNetworkHandler
     bool m_link_status;
 
     /// The buffer space for incoming messages
-    std::deque<FrameWithMTU> m_incoming_avdecc_frames;
+    deque<FrameWithMTU> m_incoming_avdecc_frames;
 
     /// The buffer space of outgoing messages
-    std::deque<FrameWithMTU> m_outgoing_app_messages;
+    deque<FrameWithMTU> m_outgoing_app_messages;
 
-    std::string m_device;
+    string m_device;
 };
 }

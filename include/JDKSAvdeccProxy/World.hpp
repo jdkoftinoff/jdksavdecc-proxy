@@ -43,7 +43,22 @@ using namespace JDKSAvdeccMCU;
 using std::string;
 using std::vector;
 using std::pair;
+using std::map;
+using std::deque;
+
+using std::runtime_error;
+using std::logic_error;
+using std::exception;
+
+#if __cplusplus >= 201103L
 using Obbligato::shared_ptr;
 using Obbligato::make_shared;
 using Obbligato::unique_ptr;
+#else
+using std::shared_ptr;
+using std::make_shared;
+using std::unique_ptr;
+#endif
+
+using Obbligato::formstring;
 }

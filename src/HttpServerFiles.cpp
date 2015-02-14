@@ -39,12 +39,10 @@ HttpServerFiles::~HttpServerFiles() {}
 
 void HttpServerFiles::load() {}
 
-Obbligato::shared_ptr<HttpServerBlob>
-    HttpServerFiles::find( const std::string &path ) const
+shared_ptr<HttpServerBlob> HttpServerFiles::find( const string &path ) const
 {
-    Obbligato::shared_ptr<HttpServerBlob> r;
-    std::map<std::string,
-             Obbligato::shared_ptr<HttpServerBlob> >::const_iterator i
+    shared_ptr<HttpServerBlob> r;
+    map<string, shared_ptr<HttpServerBlob> >::const_iterator i
         = m_content.find( path );
     if ( i != m_content.end() )
     {
@@ -53,8 +51,8 @@ Obbligato::shared_ptr<HttpServerBlob>
     return r;
 }
 
-void HttpServerFiles::insert( std::string const &path,
-                              Obbligato::shared_ptr<HttpServerBlob> blob )
+void HttpServerFiles::insert( string const &path,
+                              shared_ptr<HttpServerBlob> blob )
 {
     m_content[path] = blob;
 }
