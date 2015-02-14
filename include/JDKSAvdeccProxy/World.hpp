@@ -43,5 +43,7 @@ using namespace JDKSAvdeccMCU;
 using std::string;
 using std::vector;
 using std::pair;
-using std::unique_ptr;
+using Obbligato::shared_ptr;
+using Obbligato::make_shared;
+
 }
