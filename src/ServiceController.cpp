@@ -49,14 +49,14 @@ ServiceController::ServiceController( Settings const &settings,
 {
     setupServerFiles();
 
-    m_service = std::unique_ptr<NetworkService>( new NetworkService(
+    m_service.reset ( new NetworkService(
         m_settings.m_proxy_settings, m_server_content, m_loop ) );
     m_service->start();
 }
 
 ServiceController::~ServiceController()
 {
-    if ( m_service )
+    if ( m_service.get() )
     {
         m_service->stop();
         m_service.reset();

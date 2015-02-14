@@ -45,5 +45,5 @@ using std::vector;
 using std::pair;
 using Obbligato::shared_ptr;
 using Obbligato::make_shared;
-
+using Obbligato::unique_ptr;
 }

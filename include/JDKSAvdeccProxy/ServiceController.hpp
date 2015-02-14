@@ -61,6 +61,6 @@ class ServiceController
     Settings const &m_settings;
     HttpServerContent m_server_content;
     uv_loop_t *m_loop;
-    std::unique_ptr<NetworkService> m_service;
+    Obbligato::unique_ptr<NetworkService> m_service;
 };
 }
