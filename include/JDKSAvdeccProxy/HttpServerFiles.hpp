@@ -49,6 +49,6 @@ class HttpServerFiles
     virtual std::shared_ptr<HttpServerBlob>
         find( std::string const &path ) const;
 
-    std::map<std::string, std::shared_ptr<HttpServerBlob>> m_content;
+    std::map<std::string, std::shared_ptr<HttpServerBlob> > m_content;
 };
 }

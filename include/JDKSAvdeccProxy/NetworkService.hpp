@@ -202,11 +202,11 @@ class NetworkService : public NetworkServiceBase
     uint16_t m_assigned_id_count;
     ApsClient::active_connections_type m_active_ids;
 
-    std::vector<std::shared_ptr<ApsClient>> m_active_client_handlers;
-    std::vector<std::shared_ptr<ApsClient>> m_available_client_handlers;
+    std::vector<std::shared_ptr<ApsClient> > m_active_client_handlers;
+    std::vector<std::shared_ptr<ApsClient> > m_available_client_handlers;
     HttpServerFiles const &m_builtin_files;
-    std::map<std::string, std::shared_ptr<HttpServerCgi>> m_cgi_handlers;
+    std::map<std::string, std::shared_ptr<HttpServerCgi> > m_cgi_handlers;
 
-    std::map<std::string, std::shared_ptr<RawNetworkHandler>> m_raw_networks;
+    std::map<std::string, std::shared_ptr<RawNetworkHandler> > m_raw_networks;
 };
 }

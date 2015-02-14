@@ -233,7 +233,7 @@ void NetworkService::onTick()
     jdksavdecc_timestamp_in_microseconds ts
         = get_current_time_in_microseconds();
     uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000 );
-    for ( std::vector<std::shared_ptr<ApsClient>>::iterator i
+    for ( std::vector<std::shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -244,7 +244,7 @@ void NetworkService::onTick()
 
     // Notify all raw networks about time
 
-    for ( std::map<std::string, std::shared_ptr<RawNetworkHandler>>::iterator i
+    for ( std::map<std::string, std::shared_ptr<RawNetworkHandler> >::iterator i
           = m_raw_networks.begin();
           i != m_raw_networks.end();
           ++i )
@@ -371,7 +371,7 @@ bool NetworkService::error404( const HttpRequest &request,
 
 void NetworkService::removeApsClient( ApsClient *client )
 {
-    for ( std::vector<std::shared_ptr<ApsClient>>::iterator i
+    for ( std::vector<std::shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -409,7 +409,7 @@ std::shared_ptr<HttpServerCgi>
     }
     std::shared_ptr<HttpServerCgi> r;
 
-    std::map<std::string, std::shared_ptr<HttpServerCgi>>::iterator i
+    std::map<std::string, std::shared_ptr<HttpServerCgi> >::iterator i
         = m_cgi_handlers.find( truncated_path );
     if ( i != m_cgi_handlers.end() )
     {

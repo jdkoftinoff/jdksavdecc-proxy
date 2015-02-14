@@ -43,7 +43,7 @@ std::shared_ptr<HttpServerBlob>
     HttpServerFiles::find( const std::string &path ) const
 {
     std::shared_ptr<HttpServerBlob> r;
-    std::map<std::string, std::shared_ptr<HttpServerBlob>>::const_iterator i
+    std::map<std::string, std::shared_ptr<HttpServerBlob> >::const_iterator i
         = m_content.find( path );
     if ( i != m_content.end() )
     {
