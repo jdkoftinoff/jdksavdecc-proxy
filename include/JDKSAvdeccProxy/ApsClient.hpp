@@ -110,7 +110,7 @@ class ApsClient : public ApsStateMachine
     HttpServerFiles const &m_http_server_files;
     uv_tcp_t m_tcp;
 
-    std::array<char, 8192> m_incoming_buffer;
+    char m_incoming_buffer[8192];
 
   private:
     static void onUvReadAllocate( uv_handle_t *handle,

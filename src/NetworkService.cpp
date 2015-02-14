@@ -80,15 +80,19 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
 {
     for ( int i = 0; i < settings.m_max_clients; ++i )
     {
-        m_available_client_handlers.push_back( std::make_shared<ApsClient>(
-            this, m_assigned_id_count, m_active_ids, "/", server_files ) );
+        m_available_client_handlers.push_back( Obbligato::shared_ptr<ApsClient>(
+            new ApsClient( this,
+                           m_assigned_id_count,
+                           m_active_ids,
+                           "/",
+                           server_files ) ) );
     }
 
     if ( settings.m_avdecc_interface.length() > 0 )
     {
         m_raw_networks[settings.m_avdecc_interface]
-            = std::make_shared<RawNetworkHandler>(
-                this, uv_loop, settings.m_avdecc_interface );
+            = Obbligato::shared_ptr<RawNetworkHandler>( new RawNetworkHandler(
+                this, uv_loop, settings.m_avdecc_interface ) );
     }
 
     // initialize the uv tcp server object
@@ -96,8 +100,26 @@ NetworkService::NetworkService( const NetworkService::Settings &settings,
     m_tcp_server.data = this;
 
     // add the cgi handlers
-    addCgiHandler( "/cgi-bin/status", std::make_shared<CgiStatus>( this ) );
-    addCgiHandler( "/cgi-bin/config", std::make_shared<CgiConfig>( this ) );
+    addCgiHandler( "/cgi-bin/status",
+                   Obbligato::shared_ptr<CgiStatus>( new CgiStatus( this ) ) );
+
+    addCgiHandler( "/cgi-bin/config",
+                   Obbligato::shared_ptr<CgiConfig>( new CgiConfig( this ) ) );
+}
+
+static void listen_handler( uv_stream_t *server, int status )
+{
+    if ( !status )
+    {
+        NetworkService *self = (NetworkService *)server->data;
+        self->onNewConnection();
+    }
+}
+
+static void tick_handler( uv_timer_t *timer )
+{
+    NetworkService *self = (NetworkService *)timer->data;
+    self->onTick();
 }
 
 void NetworkService::start()
@@ -132,16 +154,7 @@ void NetworkService::start()
     // if we were able to bind, try listen
     if ( !r )
     {
-        r = uv_listen( (uv_stream_t *)&m_tcp_server,
-                       128,
-                       []( uv_stream_t *server, int status )
-                       {
-            if ( !status )
-            {
-                NetworkService *self = (NetworkService *)server->data;
-                self->onNewConnection();
-            }
-        } );
+        r = uv_listen( (uv_stream_t *)&m_tcp_server, 128, listen_handler );
     }
 
     // if we got some sort of error, log it and throw
@@ -159,14 +172,7 @@ void NetworkService::start()
     // create a single 250 ms timer for updating state machines
     uv_timer_init( m_uv_loop, &m_tick_timer );
     m_tick_timer.data = this;
-    uv_timer_start( &m_tick_timer,
-                    []( uv_timer_t *timer )
-                    {
-                        NetworkService *self = (NetworkService *)timer->data;
-                        self->onTick();
-                    },
-                    0,
-                    250 );
+    uv_timer_start( &m_tick_timer, tick_handler, 0, 250 );
 }
 
 void NetworkService::stop()
@@ -187,7 +193,7 @@ void NetworkService::onNewConnection()
 {
     if ( m_available_client_handlers.size() > 0 )
     {
-        auto aps = m_available_client_handlers.back();
+        std::shared_ptr<ApsClient> aps = m_available_client_handlers.back();
 
         uv_tcp_init( m_uv_loop, aps->getTcp() );
         aps->getTcp()->data = (void *)aps.get();
@@ -226,8 +232,9 @@ void NetworkService::onTick()
     // Notify all ApsClients about time
     jdksavdecc_timestamp_in_microseconds ts
         = get_current_time_in_microseconds();
-    uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000);
-    for ( auto i = m_active_client_handlers.begin();
+    uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000 );
+    for ( std::vector<std::shared_ptr<ApsClient>>::iterator i
+          = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
     {
@@ -237,7 +244,10 @@ void NetworkService::onTick()
 
     // Notify all raw networks about time
 
-    for ( auto i = m_raw_networks.begin(); i != m_raw_networks.end(); ++i )
+    for ( std::map<std::string, std::shared_ptr<RawNetworkHandler>>::iterator i
+          = m_raw_networks.begin();
+          i != m_raw_networks.end();
+          ++i )
     {
         i->second->onTimeTick( time_in_seconds );
     }
@@ -253,7 +263,8 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
 {
     bool r = false;
 
-    auto content = getHttpFileHeaders( request, response );
+    std::shared_ptr<HttpServerBlob> content
+        = getHttpFileHeaders( request, response );
 
     if ( content )
     {
@@ -307,19 +318,17 @@ std::shared_ptr<HttpServerBlob>
     NetworkService::getHttpFileHeaders( const HttpRequest &request,
                                         HttpResponse *response )
 {
-    using ::Obbligato::formstring;
-
-    auto i = m_builtin_files.find( request.m_path );
+    std::shared_ptr<HttpServerBlob> i = m_builtin_files.find( request.m_path );
 
     if ( i && i->m_content )
     {
         response->m_headers.push_back( "Connection: Close" );
 
         response->m_headers.push_back(
-            formstring( "Content-Type: ", i->m_mime_type ) );
+            Obbligato::formstring( "Content-Type: ", i->m_mime_type ) );
 
         response->m_headers.push_back(
-            formstring( "Content-Length: ", i->m_content_length ) );
+            Obbligato::formstring( "Content-Length: ", i->m_content_length ) );
 
         response->m_version = "HTTP/1.1";
         response->m_status_code = "200";
@@ -343,8 +352,6 @@ void NetworkService::removeRawNetwork( const std::string &name )
 bool NetworkService::error404( const HttpRequest &request,
                                HttpResponse *response )
 {
-    using ::Obbligato::formstring;
-
     response->setContent(
         "<DOCTYPE html><html lang=\"en\"><h1>Not Found</h1></html>" );
 
@@ -352,8 +359,8 @@ bool NetworkService::error404( const HttpRequest &request,
 
     response->addHeader( "Content-Type", "text/html" );
 
-    response->addHeader(
-        formstring( "Content-Length", ": ", response->m_content.size() ) );
+    response->addHeader( Obbligato::formstring(
+        "Content-Length", ": ", response->m_content.size() ) );
 
     response->m_version = "HTTP/1.1";
     response->m_status_code = "404";
@@ -364,7 +371,8 @@ bool NetworkService::error404( const HttpRequest &request,
 
 void NetworkService::removeApsClient( ApsClient *client )
 {
-    for ( auto i = m_active_client_handlers.begin();
+    for ( std::vector<std::shared_ptr<ApsClient>>::iterator i
+          = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
     {
@@ -401,7 +409,8 @@ std::shared_ptr<HttpServerCgi>
     }
     std::shared_ptr<HttpServerCgi> r;
 
-    auto i = m_cgi_handlers.find( truncated_path );
+    std::map<std::string, std::shared_ptr<HttpServerCgi>>::iterator i
+        = m_cgi_handlers.find( truncated_path );
     if ( i != m_cgi_handlers.end() )
     {
         r = i->second;

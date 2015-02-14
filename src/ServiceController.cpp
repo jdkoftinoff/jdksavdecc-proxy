@@ -84,7 +84,7 @@ bool ServiceController::run()
         ob_log_error( "exception caught: ", e.what() );
         return false;
     }
-    return uv_loop_alive( m_loop )!=0 ? true : false;
+    return uv_loop_alive( m_loop ) != 0 ? true : false;
 }
 
 void ServiceController::setupServerFiles() { m_server_content.load(); }

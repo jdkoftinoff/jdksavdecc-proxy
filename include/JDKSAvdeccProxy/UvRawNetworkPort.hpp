@@ -63,5 +63,4 @@ class UvRawNetworks
 
     std::deque<FrameWithMTU> m_outgoing_app_messages;
 };
-
 }

@@ -42,7 +42,7 @@ void ApsClient::onUvReadAllocate( uv_handle_t *handle,
 {
     ApsClient *self = reinterpret_cast<ApsClient *>( handle->data );
     buf->base = &self->m_incoming_buffer[0];
-    buf->len = self->m_incoming_buffer.size();
+    buf->len = sizeof( self->m_incoming_buffer );
 }
 
 void ApsClient::onUvRead( uv_stream_t *stream,
