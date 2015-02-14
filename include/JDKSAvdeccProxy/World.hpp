@@ -51,13 +51,13 @@ using std::logic_error;
 using std::exception;
 
 #if __cplusplus >= 201103L
-using Obbligato::shared_ptr;
-using Obbligato::make_shared;
-using Obbligato::unique_ptr;
-#else
 using std::shared_ptr;
 using std::make_shared;
 using std::unique_ptr;
+#else
+using Obbligato::shared_ptr;
+using Obbligato::make_shared;
+using Obbligato::unique_ptr;
 #endif
 
 using Obbligato::formstring;
