@@ -182,7 +182,7 @@ void NetworkService::stop()
 
     while ( m_active_client_handlers.size() > 0 )
     {
-        std::shared_ptr<ApsClient> aps = m_active_client_handlers.back();
+        Obbligato::shared_ptr<ApsClient> aps = m_active_client_handlers.back();
         aps->stop();
         m_available_client_handlers.push_back( aps );
         m_active_client_handlers.pop_back();
@@ -193,7 +193,8 @@ void NetworkService::onNewConnection()
 {
     if ( m_available_client_handlers.size() > 0 )
     {
-        std::shared_ptr<ApsClient> aps = m_available_client_handlers.back();
+        Obbligato::shared_ptr<ApsClient> aps
+            = m_available_client_handlers.back();
 
         uv_tcp_init( m_uv_loop, aps->getTcp() );
         aps->getTcp()->data = (void *)aps.get();
@@ -233,7 +234,7 @@ void NetworkService::onTick()
     jdksavdecc_timestamp_in_microseconds ts
         = get_current_time_in_microseconds();
     uint32_t time_in_seconds = static_cast<uint32_t>( ts / 1000000 );
-    for ( std::vector<std::shared_ptr<ApsClient> >::iterator i
+    for ( std::vector<Obbligato::shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -244,7 +245,8 @@ void NetworkService::onTick()
 
     // Notify all raw networks about time
 
-    for ( std::map<std::string, std::shared_ptr<RawNetworkHandler> >::iterator i
+    for ( std::map<std::string,
+                   Obbligato::shared_ptr<RawNetworkHandler> >::iterator i
           = m_raw_networks.begin();
           i != m_raw_networks.end();
           ++i )
@@ -263,7 +265,7 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
 {
     bool r = false;
 
-    std::shared_ptr<HttpServerBlob> content
+    Obbligato::shared_ptr<HttpServerBlob> content
         = getHttpFileHeaders( request, response );
 
     if ( content )
@@ -294,7 +296,7 @@ bool NetworkService::onIncomingHttpCgiGetRequest( const HttpRequest &request,
                                                   HttpResponse *response )
 {
     bool r = false;
-    std::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    Obbligato::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
     if ( h )
     {
         r = h->onIncomingHttpGetRequest( request, response );
@@ -306,7 +308,7 @@ bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
                                                    HttpResponse *response )
 {
     bool r = false;
-    std::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
+    Obbligato::shared_ptr<HttpServerCgi> h = findCgiHandler( request.m_path );
     if ( h )
     {
         r = h->onIncomingHttpPostRequest( request, response );
@@ -314,11 +316,12 @@ bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
     return r;
 }
 
-std::shared_ptr<HttpServerBlob>
+Obbligato::shared_ptr<HttpServerBlob>
     NetworkService::getHttpFileHeaders( const HttpRequest &request,
                                         HttpResponse *response )
 {
-    std::shared_ptr<HttpServerBlob> i = m_builtin_files.find( request.m_path );
+    Obbligato::shared_ptr<HttpServerBlob> i
+        = m_builtin_files.find( request.m_path );
 
     if ( i && i->m_content )
     {
@@ -338,8 +341,8 @@ std::shared_ptr<HttpServerBlob>
     return i;
 }
 
-void NetworkService::addRawNetwork( const std::string &name,
-                                    std::shared_ptr<RawNetworkHandler> handler )
+void NetworkService::addRawNetwork(
+    const std::string &name, Obbligato::shared_ptr<RawNetworkHandler> handler )
 {
     m_raw_networks[name] = handler;
 }
@@ -371,7 +374,7 @@ bool NetworkService::error404( const HttpRequest &request,
 
 void NetworkService::removeApsClient( ApsClient *client )
 {
-    for ( std::vector<std::shared_ptr<ApsClient> >::iterator i
+    for ( std::vector<Obbligato::shared_ptr<ApsClient> >::iterator i
           = m_active_client_handlers.begin();
           i != m_active_client_handlers.end();
           ++i )
@@ -387,13 +390,13 @@ void NetworkService::removeApsClient( ApsClient *client )
 
 uv_loop_t *NetworkService::getLoop() { return m_uv_loop; }
 
-void NetworkService::addCgiHandler( const std::string &prefix,
-                                    std::shared_ptr<HttpServerCgi> handler )
+void NetworkService::addCgiHandler(
+    const std::string &prefix, Obbligato::shared_ptr<HttpServerCgi> handler )
 {
     m_cgi_handlers[prefix] = handler;
 }
 
-std::shared_ptr<HttpServerCgi>
+Obbligato::shared_ptr<HttpServerCgi>
     NetworkService::findCgiHandler( const std::string &path )
 {
     std::string truncated_path;
@@ -407,9 +410,9 @@ std::shared_ptr<HttpServerCgi>
     {
         truncated_path = path;
     }
-    std::shared_ptr<HttpServerCgi> r;
+    Obbligato::shared_ptr<HttpServerCgi> r;
 
-    std::map<std::string, std::shared_ptr<HttpServerCgi> >::iterator i
+    std::map<std::string, Obbligato::shared_ptr<HttpServerCgi> >::iterator i
         = m_cgi_handlers.find( truncated_path );
     if ( i != m_cgi_handlers.end() )
     {

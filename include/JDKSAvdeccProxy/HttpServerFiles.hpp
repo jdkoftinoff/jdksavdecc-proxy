@@ -44,11 +44,11 @@ class HttpServerFiles
     virtual void load();
 
     void insert( std::string const &path,
-                 std::shared_ptr<HttpServerBlob> blob );
+                 Obbligato::shared_ptr<HttpServerBlob> blob );
 
-    virtual std::shared_ptr<HttpServerBlob>
+    virtual Obbligato::shared_ptr<HttpServerBlob>
         find( std::string const &path ) const;
 
-    std::map<std::string, std::shared_ptr<HttpServerBlob> > m_content;
+    std::map<std::string, Obbligato::shared_ptr<HttpServerBlob> > m_content;
 };
 }

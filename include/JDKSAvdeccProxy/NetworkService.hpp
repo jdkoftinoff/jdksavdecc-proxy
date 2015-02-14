@@ -142,12 +142,13 @@ class NetworkService : public NetworkServiceBase
 
     virtual bool error404( const HttpRequest &request, HttpResponse *response );
 
-    virtual std::shared_ptr<HttpServerBlob>
+    virtual Obbligato::shared_ptr<HttpServerBlob>
         getHttpFileHeaders( HttpRequest const &request,
                             HttpResponse *response );
 
-    virtual void addRawNetwork( std::string const &name,
-                                std::shared_ptr<RawNetworkHandler> handler );
+    virtual void
+        addRawNetwork( std::string const &name,
+                       Obbligato::shared_ptr<RawNetworkHandler> handler );
 
     virtual void removeRawNetwork( std::string const &name );
 
@@ -158,9 +159,10 @@ class NetworkService : public NetworkServiceBase
     virtual uv_loop_t *getLoop();
 
     virtual void addCgiHandler( std::string const &prefix,
-                                std::shared_ptr<HttpServerCgi> handler );
+                                Obbligato::shared_ptr<HttpServerCgi> handler );
 
-    std::shared_ptr<HttpServerCgi> findCgiHandler( std::string const &path );
+    Obbligato::shared_ptr<HttpServerCgi>
+        findCgiHandler( std::string const &path );
 
     class CgiStatus : public HttpServerCgi
     {
@@ -202,11 +204,12 @@ class NetworkService : public NetworkServiceBase
     uint16_t m_assigned_id_count;
     ApsClient::active_connections_type m_active_ids;
 
-    std::vector<std::shared_ptr<ApsClient> > m_active_client_handlers;
-    std::vector<std::shared_ptr<ApsClient> > m_available_client_handlers;
+    std::vector<Obbligato::shared_ptr<ApsClient> > m_active_client_handlers;
+    std::vector<Obbligato::shared_ptr<ApsClient> > m_available_client_handlers;
     HttpServerFiles const &m_builtin_files;
-    std::map<std::string, std::shared_ptr<HttpServerCgi> > m_cgi_handlers;
+    std::map<std::string, Obbligato::shared_ptr<HttpServerCgi> > m_cgi_handlers;
 
-    std::map<std::string, std::shared_ptr<RawNetworkHandler> > m_raw_networks;
+    std::map<std::string, Obbligato::shared_ptr<RawNetworkHandler> >
+        m_raw_networks;
 };
 }

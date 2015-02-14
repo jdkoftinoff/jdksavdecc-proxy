@@ -85,15 +85,15 @@ class NetworkServiceBase
     virtual bool error404( const HttpRequest &request, HttpResponse *response )
         = 0;
 
-    virtual std::shared_ptr<HttpServerBlob>
+    virtual Obbligato::shared_ptr<HttpServerBlob>
         getHttpFileHeaders( HttpRequest const &request, HttpResponse *response )
         = 0;
 
     virtual void removeApsClient( ApsClient *aps_client ) = 0;
 
-    virtual void addRawNetwork( std::string const &name,
-                                std::shared_ptr<RawNetworkHandler> handler )
-        = 0;
+    virtual void
+        addRawNetwork( std::string const &name,
+                       Obbligato::shared_ptr<RawNetworkHandler> handler ) = 0;
 
     virtual void removeRawNetwork( std::string const &name ) = 0;
 

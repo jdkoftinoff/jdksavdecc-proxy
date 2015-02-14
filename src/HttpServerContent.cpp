@@ -42,23 +42,26 @@ namespace HttpServerContentData
 void HttpServerContent::load()
 {
     m_content.clear();
-    std::shared_ptr<HttpServerBlob> index = std::make_shared<HttpServerBlob>(
-        "text/html",
-        HttpServerContentData::index_html,
-        HttpServerContentData::index_html_len );
+    Obbligato::shared_ptr<HttpServerBlob> index
+        = Obbligato::make_shared<HttpServerBlob>(
+            "text/html",
+            HttpServerContentData::index_html,
+            HttpServerContentData::index_html_len );
     insert( "/", index );
     insert( "/index.html", index );
 
-    std::shared_ptr<HttpServerBlob> css = std::make_shared<HttpServerBlob>(
-        "text/css",
-        HttpServerContentData::theme_css,
-        HttpServerContentData::theme_css_len );
+    Obbligato::shared_ptr<HttpServerBlob> css
+        = Obbligato::make_shared<HttpServerBlob>(
+            "text/css",
+            HttpServerContentData::theme_css,
+            HttpServerContentData::theme_css_len );
     insert( "/theme.css", css );
 
-    std::shared_ptr<HttpServerBlob> logo_png = std::make_shared<HttpServerBlob>(
-        "image/png",
-        HttpServerContentData::logo_png,
-        HttpServerContentData::logo_png_len );
+    Obbligato::shared_ptr<HttpServerBlob> logo_png
+        = Obbligato::make_shared<HttpServerBlob>(
+            "image/png",
+            HttpServerContentData::logo_png,
+            HttpServerContentData::logo_png_len );
 
     insert( "/logo.png", logo_png );
 }
