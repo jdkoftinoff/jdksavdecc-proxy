@@ -261,7 +261,8 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
 {
     bool r = false;
 
-    const HttpServerBlob *content = getHttpFileHeaders( request, response );
+    shared_ptr<HttpServerBlob> content
+        = getHttpFileHeaders( request, response );
 
     if ( content )
     {
@@ -311,11 +312,11 @@ bool NetworkService::onIncomingHttpCgiPostRequest( const HttpRequest &request,
     return r;
 }
 
-const HttpServerBlob *
+shared_ptr<HttpServerBlob>
     NetworkService::getHttpFileHeaders( const HttpRequest &request,
                                         HttpResponse *response )
 {
-    const HttpServerBlob *i = m_builtin_files.find( request.m_path );
+    shared_ptr<HttpServerBlob> i = m_builtin_files.find( request.m_path );
 
     if ( i && i->getContent() )
     {

@@ -39,21 +39,21 @@ HttpServerFiles::~HttpServerFiles() {}
 
 void HttpServerFiles::load() {}
 
-const HttpServerBlob *HttpServerFiles::find( const string &path ) const
+shared_ptr<HttpServerBlob> HttpServerFiles::find( const string &path ) const
 {
-    const HttpServerBlob *r = 0;
+    shared_ptr<HttpServerBlob> r;
 
-    map<string, unique_ptr<HttpServerBlob> >::const_iterator i
+    map<string, shared_ptr<HttpServerBlob> >::const_iterator i
         = m_content.find( path );
     if ( i != m_content.end() )
     {
-        r = i->second.get();
+        r = i->second;
     }
     return r;
 }
 
 void HttpServerFiles::insert( string const &path,
-                              unique_ptr<HttpServerBlob> blob )
+                              shared_ptr<HttpServerBlob> blob )
 {
     m_content[path] = blob;
 }

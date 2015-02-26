@@ -43,10 +43,10 @@ class HttpServerFiles
 
     virtual void load();
 
-    void insert( string const &path, unique_ptr<HttpServerBlob> blob );
+    void insert( string const &path, shared_ptr<HttpServerBlob> blob );
 
-    virtual const HttpServerBlob *find( string const &path ) const;
+    virtual shared_ptr<HttpServerBlob> find( string const &path ) const;
 
-    map<string, unique_ptr<HttpServerBlob> > m_content;
+    map<string, shared_ptr<HttpServerBlob> > m_content;
 };
 }

@@ -196,22 +196,25 @@ class HttpServerBlobString : public HttpServerBlob
     string m_content;
 };
 
-inline HttpServerBlob *make_http_server_blob( string const &mime_type,
-                                              uint8_t const *content,
-                                              size_t content_length )
+inline shared_ptr<HttpServerBlob> make_http_server_blob(
+    string const &mime_type, uint8_t const *content, size_t content_length )
 {
-    return new HttpServerBlobRaw( mime_type, content, content_length );
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobRaw( mime_type, content, content_length ) );
 }
 
-inline HttpServerBlob *make_http_server_blob( string const &mime_type,
-                                              string content )
+inline shared_ptr<HttpServerBlob>
+    make_http_server_blob( string const &mime_type, string content )
 {
-    return new HttpServerBlobString( mime_type, content );
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobString( mime_type, content ) );
 }
 
-inline HttpServerBlob *make_http_server_blob( string const &mime_type,
-                                              vector<uint8_t> const *content )
+inline shared_ptr<HttpServerBlob>
+    make_http_server_blob( string const &mime_type,
+                           vector<uint8_t> const *content )
 {
-    return new HttpServerBlobVector( mime_type, content );
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobVector( mime_type, content ) );
 }
 }
