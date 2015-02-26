@@ -44,21 +44,21 @@ void HttpServerContent::load()
     m_content.clear();
 
     insert( "/",
-            new HttpServerBlobRaw( "text/html",
+            make_http_server_blob( "text/html",
                                    HttpServerContentData::index_html,
                                    HttpServerContentData::index_html_len ) );
     insert( "/index.html",
-            new HttpServerBlobRaw( "text/html",
+            make_http_server_blob( "text/html",
                                    HttpServerContentData::index_html,
                                    HttpServerContentData::index_html_len ) );
 
     insert( "/theme.css",
-            new HttpServerBlobRaw( "text/css",
+            make_http_server_blob( "text/css",
                                    HttpServerContentData::theme_css,
                                    HttpServerContentData::theme_css_len ) );
 
     insert( "/logo.png",
-            new HttpServerBlobRaw( "image/png",
+            make_http_server_blob( "image/png",
                                    HttpServerContentData::logo_png,
                                    HttpServerContentData::logo_png_len ) );
 }

@@ -35,12 +35,36 @@
 namespace JDKSAvdeccProxy
 {
 
+///
+/// \brief The HttpServerBlob class
+///
+/// Base class for a Blob that can be served by an HTTP Server
+/// Contains accessors for the mime type, content, and content length.
+///
 class HttpServerBlob
 {
   public:
     virtual ~HttpServerBlob() {}
+
+    ///
+    /// \brief getMimeType
+    ///
+    /// \return const string reference to the mime type of the content
+    ///
     virtual string const &getMimeType() const = 0;
+
+    ///
+    /// \brief getContent
+    ///
+    /// \return const uint8_t pointer to the raw data content
+    ///
     virtual uint8_t const *getContent() const = 0;
+
+    ///
+    /// \brief getContentLength
+    ///
+    /// \return size of the data content in octets
+    ///
     virtual size_t getContentLength() const = 0;
 };
 
@@ -171,4 +195,23 @@ class HttpServerBlobString : public HttpServerBlob
     string m_mime_type;
     string m_content;
 };
+
+inline HttpServerBlob *make_http_server_blob( string const &mime_type,
+                                              uint8_t const *content,
+                                              size_t content_length )
+{
+    return new HttpServerBlobRaw( mime_type, content, content_length );
+}
+
+inline HttpServerBlob *make_http_server_blob( string const &mime_type,
+                                              string content )
+{
+    return new HttpServerBlobString( mime_type, content );
+}
+
+inline HttpServerBlob *make_http_server_blob( string const &mime_type,
+                                              vector<uint8_t> const *content )
+{
+    return new HttpServerBlobVector( mime_type, content );
+}
 }
