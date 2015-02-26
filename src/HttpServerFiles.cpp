@@ -39,9 +39,9 @@ HttpServerFiles::~HttpServerFiles() {}
 
 void HttpServerFiles::load() {}
 
-const HttpServerBlobBase * HttpServerFiles::find( const string &path ) const
+const HttpServerBlobBase *HttpServerFiles::find( const string &path ) const
 {
-    const HttpServerBlobBase *r=0;
+    const HttpServerBlobBase *r = 0;
 
     map<string, unique_ptr<HttpServerBlobBase> >::const_iterator i
         = m_content.find( path );

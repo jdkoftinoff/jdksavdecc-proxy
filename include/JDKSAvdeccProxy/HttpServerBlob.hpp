@@ -37,7 +37,7 @@ namespace JDKSAvdeccProxy
 
 class HttpServerBlobBase
 {
-public:
+  public:
     virtual ~HttpServerBlobBase() {}
     virtual string const &getMimeType() const = 0;
     virtual uint8_t const *getContent() const = 0;
@@ -47,10 +47,7 @@ public:
 class HttpServerBlobRaw : public HttpServerBlobBase
 {
   public:
-    HttpServerBlobRaw()
-        : m_mime_type()
-        , m_content( 0 )
-        , m_content_length( 0 )
+    HttpServerBlobRaw() : m_mime_type(), m_content( 0 ), m_content_length( 0 )
     {
     }
 
@@ -81,24 +78,13 @@ class HttpServerBlobRaw : public HttpServerBlobBase
         return *this;
     }
 
-    virtual ~HttpServerBlobRaw()
-    {
-    }
+    virtual ~HttpServerBlobRaw() {}
 
-    virtual string const &getMimeType() const
-    {
-        return m_mime_type;
-    }
+    virtual string const &getMimeType() const { return m_mime_type; }
 
-    virtual uint8_t const *getContent() const
-    {
-        return m_content;
-    }
+    virtual uint8_t const *getContent() const { return m_content; }
 
-    virtual size_t getContentLength() const
-    {
-        return m_content_length;
-    }
+    virtual size_t getContentLength() const { return m_content_length; }
 
   private:
     string m_mime_type;
@@ -109,26 +95,18 @@ class HttpServerBlobRaw : public HttpServerBlobBase
 class HttpServerBlobVector : public HttpServerBlobBase
 {
   public:
-    HttpServerBlobVector()
-        : m_mime_type()
-        , m_content()
-    {
-    }
+    HttpServerBlobVector() : m_mime_type(), m_content() {}
 
     HttpServerBlobVector( string const &mime_type,
-                          vector<uint8_t> const *content
-                          )
-        : m_mime_type( mime_type )
-        , m_content( content )
+                          vector<uint8_t> const *content )
+        : m_mime_type( mime_type ), m_content( content )
     {
     }
 
     HttpServerBlobVector( const HttpServerBlobVector &other )
-        : m_mime_type( other.m_mime_type )
-        , m_content( other.m_content )
+        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
     {
     }
-
 
     HttpServerBlobVector &operator=( const HttpServerBlobVector &other )
     {
@@ -140,24 +118,13 @@ class HttpServerBlobVector : public HttpServerBlobBase
         return *this;
     }
 
-    virtual ~HttpServerBlobVector()
-    {
-    }
+    virtual ~HttpServerBlobVector() {}
 
-    virtual string const &getMimeType() const
-    {
-        return m_mime_type;
-    }
+    virtual string const &getMimeType() const { return m_mime_type; }
 
-    virtual uint8_t const *getContent() const
-    {
-        return m_content->data();
-    }
+    virtual uint8_t const *getContent() const { return m_content->data(); }
 
-    virtual size_t getContentLength() const
-    {
-        return m_content->size();
-    }
+    virtual size_t getContentLength() const { return m_content->size(); }
 
   private:
     string m_mime_type;
@@ -167,26 +134,17 @@ class HttpServerBlobVector : public HttpServerBlobBase
 class HttpServerBlobString : public HttpServerBlobBase
 {
   public:
-    HttpServerBlobString()
-        : m_mime_type()
-        , m_content()
-    {
-    }
+    HttpServerBlobString() : m_mime_type(), m_content() {}
 
-    HttpServerBlobString( string const &mime_type,
-                          string content
-                          )
-        : m_mime_type( mime_type )
-        , m_content( content )
+    HttpServerBlobString( string const &mime_type, string content )
+        : m_mime_type( mime_type ), m_content( content )
     {
     }
 
     HttpServerBlobString( const HttpServerBlobString &other )
-        : m_mime_type( other.m_mime_type )
-        , m_content( other.m_content )
+        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
     {
     }
-
 
     HttpServerBlobString &operator=( const HttpServerBlobString &other )
     {
@@ -198,28 +156,19 @@ class HttpServerBlobString : public HttpServerBlobBase
         return *this;
     }
 
-    virtual ~HttpServerBlobString()
-    {
-    }
+    virtual ~HttpServerBlobString() {}
 
-    virtual string const &getMimeType() const
-    {
-        return m_mime_type;
-    }
+    virtual string const &getMimeType() const { return m_mime_type; }
 
     virtual uint8_t const *getContent() const
     {
-        return reinterpret_cast<const uint8_t *>(m_content.data());
+        return reinterpret_cast<const uint8_t *>( m_content.data() );
     }
 
-    virtual size_t getContentLength() const
-    {
-        return m_content.length();
-    }
+    virtual size_t getContentLength() const { return m_content.length(); }
 
   private:
     string m_mime_type;
     string m_content;
 };
-
 }

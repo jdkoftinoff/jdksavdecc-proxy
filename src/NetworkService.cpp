@@ -261,8 +261,7 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
 {
     bool r = false;
 
-    const HttpServerBlobBase * content
-        = getHttpFileHeaders( request, response );
+    const HttpServerBlobBase *content = getHttpFileHeaders( request, response );
 
     if ( content )
     {
@@ -316,7 +315,7 @@ const HttpServerBlobBase *
     NetworkService::getHttpFileHeaders( const HttpRequest &request,
                                         HttpResponse *response )
 {
-    const HttpServerBlobBase * i = m_builtin_files.find( request.m_path );
+    const HttpServerBlobBase *i = m_builtin_files.find( request.m_path );
 
     if ( i && i->getContent() )
     {
