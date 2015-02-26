@@ -41,6 +41,12 @@ class HttpServerCgi
   public:
     virtual ~HttpServerCgi() {}
 
+    /**
+     * @brief onIncomingHttpGetRequest
+     * @param request
+     * @param response
+     * @return
+     */
     virtual bool onIncomingHttpGetRequest( HttpRequest const &request,
                                            HttpResponse *response );
 
