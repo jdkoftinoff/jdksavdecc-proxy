@@ -35,16 +35,16 @@
 namespace JDKSAvdeccProxy
 {
 
-class HttpServerBlobBase
+class HttpServerBlob
 {
   public:
-    virtual ~HttpServerBlobBase() {}
+    virtual ~HttpServerBlob() {}
     virtual string const &getMimeType() const = 0;
     virtual uint8_t const *getContent() const = 0;
     virtual size_t getContentLength() const = 0;
 };
 
-class HttpServerBlobRaw : public HttpServerBlobBase
+class HttpServerBlobRaw : public HttpServerBlob
 {
   public:
     HttpServerBlobRaw() : m_mime_type(), m_content( 0 ), m_content_length( 0 )
@@ -92,7 +92,7 @@ class HttpServerBlobRaw : public HttpServerBlobBase
     size_t m_content_length;
 };
 
-class HttpServerBlobVector : public HttpServerBlobBase
+class HttpServerBlobVector : public HttpServerBlob
 {
   public:
     HttpServerBlobVector() : m_mime_type(), m_content() {}
@@ -131,7 +131,7 @@ class HttpServerBlobVector : public HttpServerBlobBase
     vector<uint8_t> const *m_content;
 };
 
-class HttpServerBlobString : public HttpServerBlobBase
+class HttpServerBlobString : public HttpServerBlob
 {
   public:
     HttpServerBlobString() : m_mime_type(), m_content() {}

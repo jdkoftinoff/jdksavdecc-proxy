@@ -142,7 +142,7 @@ class NetworkService : public NetworkServiceBase
 
     virtual bool error404( const HttpRequest &request, HttpResponse *response );
 
-    virtual const HttpServerBlobBase *
+    virtual const HttpServerBlob *
         getHttpFileHeaders( HttpRequest const &request,
                             HttpResponse *response );
 

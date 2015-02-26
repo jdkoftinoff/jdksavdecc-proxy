@@ -85,7 +85,7 @@ class NetworkServiceBase
     virtual bool error404( const HttpRequest &request, HttpResponse *response )
         = 0;
 
-    virtual const HttpServerBlobBase *
+    virtual const HttpServerBlob *
         getHttpFileHeaders( HttpRequest const &request, HttpResponse *response )
         = 0;
 
