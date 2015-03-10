@@ -267,10 +267,10 @@ bool NetworkService::onIncomingHttpFileGetRequest( const HttpRequest &request,
     if ( content )
     {
         response->m_content.clear();
-        response->m_content.resize( content->m_content_length );
+        response->m_content.resize( content->getContentLength() );
         memcpy( response->m_content.data(),
-                content->m_content,
-                content->m_content_length );
+                content->getContent(),
+                content->getContentLength() );
         r = true;
     }
     return r;
@@ -318,15 +318,15 @@ shared_ptr<HttpServerBlob>
 {
     shared_ptr<HttpServerBlob> i = m_builtin_files.find( request.m_path );
 
-    if ( i && i->m_content )
+    if ( i && i->getContent() )
     {
         response->m_headers.push_back( "Connection: Close" );
 
         response->m_headers.push_back(
-            formstring( "Content-Type: ", i->m_mime_type ) );
+            formstring( "Content-Type: ", i->getMimeType() ) );
 
         response->m_headers.push_back(
-            formstring( "Content-Length: ", i->m_content_length ) );
+            formstring( "Content-Length: ", i->getContentLength() ) );
 
         response->m_version = "HTTP/1.1";
         response->m_status_code = "200";

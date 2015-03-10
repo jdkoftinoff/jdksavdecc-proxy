@@ -35,120 +35,186 @@
 namespace JDKSAvdeccProxy
 {
 
+///
+/// \brief The HttpServerBlob class
+///
+/// Base class for a Blob that can be served by an HTTP Server
+/// Contains accessors for the mime type, content, and content length.
+///
 class HttpServerBlob
 {
   public:
-#if 0
-    static inline vector<uint8_t> load( string const &fname )
+    virtual ~HttpServerBlob() {}
+
+    ///
+    /// \brief getMimeType
+    ///
+    /// \return const string reference to the mime type of the content
+    ///
+    virtual string const &getMimeType() const = 0;
+
+    ///
+    /// \brief getContent
+    ///
+    /// \return const uint8_t pointer to the raw data content
+    ///
+    virtual uint8_t const *getContent() const = 0;
+
+    ///
+    /// \brief getContentLength
+    ///
+    /// \return size of the data content in octets
+    ///
+    virtual size_t getContentLength() const = 0;
+};
+
+class HttpServerBlobRaw : public HttpServerBlob
+{
+  public:
+    HttpServerBlobRaw() : m_mime_type(), m_content( 0 ), m_content_length( 0 )
     {
-        vector<uint8_t> r;
-        ifstream f( fname, ios::binary | ios::in );
-        f.seekg( 0, ios::end );
-        r.resize( f.tellg() );
-        f.read( (char *)r.data(), r.size() );
-        return r;
     }
 
-
-    HttpServerBlob( string const &mime_type, string const &content )
-        : m_mime_type( mime_type ), m_content( content.length() )
-    {
-        for ( size_t i = 0; i < content.length(); ++i )
-        {
-            m_content[i] = content[i];
-        }
-    }
-#endif
-
-    HttpServerBlob()
-        : m_mime_type()
-        , m_content( 0 )
-        , m_content_length( 0 )
-        , m_allocated( false )
-    {
-    }
-
-    HttpServerBlob( string const &mime_type,
-                    uint8_t const *content,
-                    size_t content_length,
-                    bool allocated = false )
+    HttpServerBlobRaw( string const &mime_type,
+                       uint8_t const *content,
+                       size_t content_length )
         : m_mime_type( mime_type )
-        , m_content( const_cast<uint8_t *>( content ) )
+        , m_content( content )
         , m_content_length( content_length )
-        , m_allocated( allocated )
     {
     }
 
-    HttpServerBlob( const HttpServerBlob &other )
+    HttpServerBlobRaw( const HttpServerBlobRaw &other )
         : m_mime_type( other.m_mime_type )
-    {
-        if ( other.m_allocated )
-        {
-            m_allocated = true;
-            m_content = new uint8_t[other.m_content_length];
-            memcpy( m_content, other.m_content, other.m_content_length );
-        }
-        else
-        {
-            m_allocated = false;
-            m_content = other.m_content;
-        }
-        m_mime_type = other.m_mime_type;
-        m_content_length = other.m_content_length;
-    }
-
-    HttpServerBlob( string const &mime_type, string const &content )
-        : m_mime_type( mime_type )
-        , m_content( new uint8_t[content.length()] )
-        , m_content_length( content.length() )
-        , m_allocated( true )
+        , m_content( other.m_content )
+        , m_content_length( other.m_content_length )
     {
     }
 
-    HttpServerBlob( string const &mime_type, vector<uint8_t> const &content )
-        : m_mime_type( mime_type )
-        , m_content( new uint8_t[content.size()] )
-        , m_content_length( content.size() )
-        , m_allocated( true )
-    {
-    }
-
-    HttpServerBlob &operator=( const HttpServerBlob &other )
+    HttpServerBlobRaw &operator=( const HttpServerBlobRaw &other )
     {
         if ( this != &other )
         {
-            if ( m_allocated )
-            {
-                delete m_content;
-            }
-            if ( other.m_allocated )
-            {
-                m_allocated = true;
-                m_content = new uint8_t[other.m_content_length];
-                memcpy( m_content, other.m_content, other.m_content_length );
-            }
-            else
-            {
-                m_allocated = false;
-                m_content = other.m_content;
-            }
+            m_content = other.m_content;
             m_mime_type = other.m_mime_type;
             m_content_length = other.m_content_length;
         }
         return *this;
     }
 
-    virtual ~HttpServerBlob()
+    virtual ~HttpServerBlobRaw() {}
+
+    virtual string const &getMimeType() const { return m_mime_type; }
+
+    virtual uint8_t const *getContent() const { return m_content; }
+
+    virtual size_t getContentLength() const { return m_content_length; }
+
+  private:
+    string m_mime_type;
+    uint8_t const *m_content;
+    size_t m_content_length;
+};
+
+class HttpServerBlobVector : public HttpServerBlob
+{
+  public:
+    HttpServerBlobVector() : m_mime_type(), m_content() {}
+
+    HttpServerBlobVector( string const &mime_type,
+                          vector<uint8_t> const *content )
+        : m_mime_type( mime_type ), m_content( content )
     {
-        if ( m_allocated )
-        {
-            delete m_content;
-        }
     }
 
+    HttpServerBlobVector( const HttpServerBlobVector &other )
+        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
+    {
+    }
+
+    HttpServerBlobVector &operator=( const HttpServerBlobVector &other )
+    {
+        if ( this != &other )
+        {
+            m_content = other.m_content;
+            m_mime_type = other.m_mime_type;
+        }
+        return *this;
+    }
+
+    virtual ~HttpServerBlobVector() {}
+
+    virtual string const &getMimeType() const { return m_mime_type; }
+
+    virtual uint8_t const *getContent() const { return m_content->data(); }
+
+    virtual size_t getContentLength() const { return m_content->size(); }
+
+  private:
     string m_mime_type;
-    uint8_t *m_content;
-    size_t m_content_length;
-    bool m_allocated;
+    vector<uint8_t> const *m_content;
 };
+
+class HttpServerBlobString : public HttpServerBlob
+{
+  public:
+    HttpServerBlobString() : m_mime_type(), m_content() {}
+
+    HttpServerBlobString( string const &mime_type, string content )
+        : m_mime_type( mime_type ), m_content( content )
+    {
+    }
+
+    HttpServerBlobString( const HttpServerBlobString &other )
+        : m_mime_type( other.m_mime_type ), m_content( other.m_content )
+    {
+    }
+
+    HttpServerBlobString &operator=( const HttpServerBlobString &other )
+    {
+        if ( this != &other )
+        {
+            m_content = other.m_content;
+            m_mime_type = other.m_mime_type;
+        }
+        return *this;
+    }
+
+    virtual ~HttpServerBlobString() {}
+
+    virtual string const &getMimeType() const { return m_mime_type; }
+
+    virtual uint8_t const *getContent() const
+    {
+        return reinterpret_cast<const uint8_t *>( m_content.data() );
+    }
+
+    virtual size_t getContentLength() const { return m_content.length(); }
+
+  private:
+    string m_mime_type;
+    string m_content;
+};
+
+inline shared_ptr<HttpServerBlob> make_http_server_blob(
+    string const &mime_type, uint8_t const *content, size_t content_length )
+{
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobRaw( mime_type, content, content_length ) );
+}
+
+inline shared_ptr<HttpServerBlob>
+    make_http_server_blob( string const &mime_type, string content )
+{
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobString( mime_type, content ) );
+}
+
+inline shared_ptr<HttpServerBlob>
+    make_http_server_blob( string const &mime_type,
+                           vector<uint8_t> const *content )
+{
+    return shared_ptr<HttpServerBlob>(
+        new HttpServerBlobVector( mime_type, content ) );
+}
 }

@@ -42,6 +42,7 @@ void HttpServerFiles::load() {}
 shared_ptr<HttpServerBlob> HttpServerFiles::find( const string &path ) const
 {
     shared_ptr<HttpServerBlob> r;
+
     map<string, shared_ptr<HttpServerBlob> >::const_iterator i
         = m_content.find( path );
     if ( i != m_content.end() )

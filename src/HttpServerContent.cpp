@@ -42,24 +42,24 @@ namespace HttpServerContentData
 void HttpServerContent::load()
 {
     m_content.clear();
-    shared_ptr<HttpServerBlob> index
-        = make_shared<HttpServerBlob>( "text/html",
-                                       HttpServerContentData::index_html,
-                                       HttpServerContentData::index_html_len );
-    insert( "/", index );
-    insert( "/index.html", index );
 
-    shared_ptr<HttpServerBlob> css
-        = make_shared<HttpServerBlob>( "text/css",
-                                       HttpServerContentData::theme_css,
-                                       HttpServerContentData::theme_css_len );
-    insert( "/theme.css", css );
+    insert( "/",
+            make_http_server_blob( "text/html",
+                                   HttpServerContentData::index_html,
+                                   HttpServerContentData::index_html_len ) );
+    insert( "/index.html",
+            make_http_server_blob( "text/html",
+                                   HttpServerContentData::index_html,
+                                   HttpServerContentData::index_html_len ) );
 
-    shared_ptr<HttpServerBlob> logo_png
-        = make_shared<HttpServerBlob>( "image/png",
-                                       HttpServerContentData::logo_png,
-                                       HttpServerContentData::logo_png_len );
+    insert( "/theme.css",
+            make_http_server_blob( "text/css",
+                                   HttpServerContentData::theme_css,
+                                   HttpServerContentData::theme_css_len ) );
 
-    insert( "/logo.png", logo_png );
+    insert( "/logo.png",
+            make_http_server_blob( "image/png",
+                                   HttpServerContentData::logo_png,
+                                   HttpServerContentData::logo_png_len ) );
 }
 }
