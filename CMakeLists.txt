@@ -77,6 +77,5 @@ ELSE(NOT BIICODE)
         target_link_libraries(JDKSAvdeccProxyServer ${LIBS})
     endif()
 ENDIF(BIICODE)
->>>>>>> fba65da498322e69ba557bfb770de9bbc9f3bab1
 
     
