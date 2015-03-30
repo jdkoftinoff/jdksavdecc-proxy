@@ -62,19 +62,19 @@ class ApsClient : public ApsStateMachine
 
     uv_tcp_t *getTcp() { return &m_tcp; }
 
-    virtual void start();
+    virtual void start() override;
 
-    virtual void stop();
+    virtual void stop( override);
 
-    virtual void sendAvdeccToL2( Frame const &frame );
+    virtual void sendAvdeccToL2( Frame const &frame ) override;
 
-    virtual void closeTcpConnection();
+    virtual void closeTcpConnection() override;
 
-    virtual void closeTcpServer();
+    virtual void closeTcpServer() override;
 
-    virtual void sendTcpData( uint8_t const *data, ssize_t len );
+    virtual void sendTcpData( uint8_t const *data, ssize_t len ) override;
 
-    class StateEventsWithWebServing : public StateEvents
+    class StateEventsWithWebServing : public ApsStateEvents
     {
       public:
         StateEventsWithWebServing( HttpServerParserSimple *parser,
@@ -86,9 +86,9 @@ class ApsClient : public ApsStateMachine
             m_aps_client = aps_client;
         }
 
-        virtual bool onIncomingHttpGetRequest( HttpRequest const &request );
-        virtual bool onIncomingHttpHeadRequest( HttpRequest const &request );
-        virtual bool onIncomingHttpPostRequest( HttpRequest const &request );
+        virtual bool onIncomingHttpGetRequest( HttpRequest const &request ) override;
+        virtual bool onIncomingHttpHeadRequest( HttpRequest const &request ) override;
+        virtual bool onIncomingHttpPostRequest( HttpRequest const &request ) override;
 
       protected:
         ApsClient *m_aps_client;
@@ -98,9 +98,9 @@ class ApsClient : public ApsStateMachine
   protected:
     virtual void sendHttpResponse( HttpResponse const &response );
 
-    StateVariables m_my_variables;
-    StateActions m_my_actions;
-    States m_my_states;
+    ApsStateVariables m_my_variables;
+    ApsStateActions m_my_actions;
+    ApsStates m_my_states;
     StateEventsWithWebServing m_my_events;
 
     NetworkServiceBase *m_owner;
