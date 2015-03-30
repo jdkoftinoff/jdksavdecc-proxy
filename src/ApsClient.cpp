@@ -117,8 +117,6 @@ void ApsClient::onUvWrite( uv_write_t *write_req, int status )
 
 void ApsClient::sendTcpData( const uint8_t *data, ssize_t len )
 {
-    ApsStateMachine::sendTcpData( data, len );
-
     uv_buf_t buf;
     buf.base = new char[len];
     buf.len = len;
@@ -168,7 +166,7 @@ ApsClient::StateEventsWithWebServing::StateEventsWithWebServing(
     HttpServerParserSimple *parser,
     string connect_path,
     NetworkServiceBase *network_service )
-    : StateEvents( parser, connect_path ), m_network_service( network_service )
+    : ApsStateEvents( parser, connect_path ), m_network_service( network_service )
 {
 }
 
