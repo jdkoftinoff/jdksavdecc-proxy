@@ -62,9 +62,9 @@ class ApsClient : public ApsStateMachine
 
     uv_tcp_t *getTcp() { return &m_tcp; }
 
-    virtual void start() override;
+    virtual void start();
 
-    virtual void stop( override);
+    virtual void stop();
 
     virtual void sendAvdeccToL2( Frame const &frame ) override;
 
