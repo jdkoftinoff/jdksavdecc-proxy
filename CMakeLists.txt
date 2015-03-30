@@ -8,7 +8,7 @@ ELSE(NOT BIICODE)
     set(PROJECT jdksavdecc-proxy)
     project(${PROJECT} C CXX)
 
-    set(CXX11 "ON")
+    set(CXX11 "OFF")
     set(LIBUV "ON")
 
     option(JDKSAVDECC_PROXY_STANDALONE "JDKSAVDECC Proxy Standalone Build" "ON")
