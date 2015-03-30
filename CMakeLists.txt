@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 set(PROJECT jdksavdecc-proxy)
 project(${PROJECT} C CXX)
 
-set(CXX11 "OFF")
+set(CXX11 "ON")
 set(LIBUV "ON")
 
 option(JDKSAVDECC_PROXY_STANDALONE "JDKSAVDECC Proxy Standalone Build" "ON")
